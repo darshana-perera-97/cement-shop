@@ -67,7 +67,7 @@ function ViewBills() {
         <Alert variant="info">No bills found.</Alert>
       ) : (
         <Table striped bordered hover>
-          <thead>
+          <thead className="table-dark">
             <tr>
               <th>Date</th>
               <th>Customer Name</th>
@@ -111,7 +111,7 @@ function ViewBills() {
                 <p><strong>Date:</strong> {formatDate(selectedBill.date)}</p>
               </div>
               <Table striped bordered hover>
-                <thead>
+                <thead className="table-dark">
                   <tr>
                     <th style={{ width: '25%', textAlign: 'left' }}>Cement Type</th>
                     <th style={{ width: '25%' }}>Bags</th>

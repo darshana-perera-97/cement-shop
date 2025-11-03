@@ -183,7 +183,7 @@ function CustomerDetail() {
                 <Alert variant="info">No transactions found.</Alert>
               ) : (
                 <Table striped bordered hover>
-                  <thead>
+                  <thead className="table-dark">
                     <tr>
                       <th>Date</th>
                       <th>Description</th>

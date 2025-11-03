@@ -56,7 +56,7 @@ function ViewCustomers() {
         <Alert variant="info">No customers found.</Alert>
       ) : (
         <Table striped bordered hover>
-          <thead>
+          <thead className="table-dark">
             <tr>
               <th>Customer ID</th>
               <th>Customer Name</th>

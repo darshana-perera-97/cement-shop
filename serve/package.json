@@ -1,0 +1,12 @@
+{
+  "name": "loan-frontend-server",
+  "version": "1.0.0",
+  "description": "Server to serve the frontend build files",
+  "main": "loan-frontend.js",
+  "scripts": {
+    "start": "node loan-frontend.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

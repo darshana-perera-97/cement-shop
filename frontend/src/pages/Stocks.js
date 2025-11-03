@@ -50,7 +50,7 @@ function Stocks() {
         <Alert variant="info">No stocks found.</Alert>
       ) : (
         <Table striped bordered hover>
-          <thead>
+          <thead className="table-dark">
             <tr>
               <th>Stock ID</th>
               <th>Tokyo</th>

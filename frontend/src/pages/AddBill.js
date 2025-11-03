@@ -259,7 +259,7 @@ function AddBill() {
             <Form.Group className="mb-3">
               <Form.Label style={{ textAlign: 'left', display: 'block' }}>Cement Type</Form.Label>
               <Table striped bordered hover>
-                <thead>
+                <thead className="table-dark">
                   <tr>
                     <th style={{ width: '25%', textAlign: 'left' }}>Cement Type</th>
                     <th style={{ width: '25%' }}>Bags</th>

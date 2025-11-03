@@ -16,7 +16,7 @@ function NavigationBar() {
   const isHomePage = location.pathname === '/';
 
   return (
-    <Navbar bg="light" expand="lg" className="shadow-sm">
+    <Navbar bg="dark" variant="dark" expand="lg" className="shadow-sm">
       <Container>
         <Navbar.Brand as={Link} to="/">Cement Store</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
