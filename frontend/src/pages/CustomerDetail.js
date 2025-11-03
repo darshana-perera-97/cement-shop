@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Row, Col, Table, Spinner, Alert } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
+import API_BASE_URL from '../config';
 
 function CustomerDetail() {
   const { customerId } = useParams();
@@ -22,7 +23,7 @@ function CustomerDetail() {
       setLoading(true);
       
       // Fetch customer details
-      const customerResponse = await fetch('http://localhost:5000/api/customers');
+      const customerResponse = await fetch(`${API_BASE_URL}/api/customers`);
       if (customerResponse.ok) {
         const customers = await customerResponse.json();
         const foundCustomer = customers.find(c => c.customerId === customerId);
@@ -34,7 +35,7 @@ function CustomerDetail() {
       }
 
       // Fetch bills
-      const billsResponse = await fetch('http://localhost:5000/api/bills');
+      const billsResponse = await fetch(`${API_BASE_URL}/api/bills`);
       if (billsResponse.ok) {
         const allBills = await billsResponse.json();
         const customerBills = allBills.filter(bill => bill.customerId === customerId);
@@ -42,7 +43,7 @@ function CustomerDetail() {
       }
 
       // Fetch payments
-      const paymentsResponse = await fetch('http://localhost:5000/api/payments');
+      const paymentsResponse = await fetch(`${API_BASE_URL}/api/payments`);
       if (paymentsResponse.ok) {
         const allPayments = await paymentsResponse.json();
         const customerPayments = allPayments.filter(payment => payment.customerId === customerId);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Card, Alert, Table, ListGroup } from 'react-bootstrap';
+import API_BASE_URL from '../config';
 
 function AddBill() {
   const [formData, setFormData] = useState({
@@ -38,7 +39,7 @@ function AddBill() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/customers');
+      const response = await fetch(`${API_BASE_URL}/api/customers`);
       if (response.ok) {
         const data = await response.json();
         setCustomers(data);
@@ -123,7 +124,7 @@ function AddBill() {
         billTotal: calculateBillTotal()
       };
 
-      const response = await fetch('http://localhost:5000/api/bills', {
+      const response = await fetch(`${API_BASE_URL}/api/bills`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

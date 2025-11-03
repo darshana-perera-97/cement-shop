@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
+import API_BASE_URL from '../config';
 
 function AddCustomer() {
     const [formData, setFormData] = useState({
@@ -25,7 +26,7 @@ function AddCustomer() {
         setAlert({ show: false, message: '', variant: '' });
 
         try {
-            const response = await fetch('http://localhost:5000/api/customers', {
+            const response = await fetch(`${API_BASE_URL}/api/customers`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

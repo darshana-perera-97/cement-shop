@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Card, Alert, ListGroup } from 'react-bootstrap';
+import API_BASE_URL from '../config';
 
 function AddPayments() {
   const [formData, setFormData] = useState({
@@ -33,7 +34,7 @@ function AddPayments() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/customers');
+      const response = await fetch(`${API_BASE_URL}/api/customers`);
       if (response.ok) {
         const data = await response.json();
         setCustomers(data);
@@ -94,7 +95,7 @@ function AddPayments() {
         notes: formData.notes
       };
 
-      const response = await fetch('http://localhost:5000/api/payments', {
+      const response = await fetch(`${API_BASE_URL}/api/payments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

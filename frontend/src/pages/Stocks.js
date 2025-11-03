@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Table, Alert, Spinner } from 'react-bootstrap';
+import API_BASE_URL from '../config';
 
 function Stocks() {
   const [stocks, setStocks] = useState([]);
@@ -13,7 +14,7 @@ function Stocks() {
   const fetchStocks = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/stocks');
+      const response = await fetch(`${API_BASE_URL}/api/stocks`);
       if (response.ok) {
         const data = await response.json();
         setStocks(data);
