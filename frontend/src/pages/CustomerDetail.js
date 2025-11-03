@@ -86,7 +86,7 @@ function CustomerDetail() {
     return date.toLocaleDateString();
   };
 
-  const totalBills = bills.reduce((sum, bill) => sum + (bill.billTotal || 0), 0);
+  const totalBills = (customer?.pastBills || 0) + bills.reduce((sum, bill) => sum + (bill.billTotal || 0), 0);
   const totalPayments = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
   const toBePaid = totalBills - totalPayments;
 
