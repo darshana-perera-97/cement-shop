@@ -58,28 +58,64 @@ function CustomerDetail() {
 
   useEffect(() => {
     // Combine bills and payments and sort by date
-    const transactions = [
-      ...bills.map(bill => ({
-        date: bill.date,
-        description: `Bill - Stock: ${bill.stockNumber}`,
+    const transactions = [];
+    
+    // Add past bills as the first transaction (if it exists)
+    if (customer && customer.pastBills > 0) {
+      // Calculate the earliest date from all transactions, or use a default early date
+      let pastBillsDate = '1900-01-01';
+      if (bills.length > 0) {
+        const allDates = bills.map(b => b.date).sort();
+        try {
+          const earliestDate = new Date(allDates[0]);
+          earliestDate.setDate(earliestDate.getDate() - 1);
+          pastBillsDate = earliestDate.toISOString().split('T')[0];
+        } catch (e) {
+          // If date parsing fails, use default
+        }
+      } else if (payments.length > 0) {
+        const allDates = payments.map(p => p.date).sort();
+        try {
+          const earliestDate = new Date(allDates[0]);
+          earliestDate.setDate(earliestDate.getDate() - 1);
+          pastBillsDate = earliestDate.toISOString().split('T')[0];
+        } catch (e) {
+          // If date parsing fails, use default
+        }
+      }
+      
+      transactions.push({
+        date: pastBillsDate,
+        description: 'Past Bills',
         payments: 0,
-        bills: bill.billTotal,
+        bills: customer.pastBills,
         type: 'bill'
-      })),
-      ...payments.map(payment => ({
-        date: payment.date,
-        description: payment.notes || 'Payment',
-        payments: payment.amount,
-        bills: 0,
-        type: 'payment'
-      }))
-    ];
+      });
+    }
+    
+    // Add current bills
+    transactions.push(...bills.map(bill => ({
+      date: bill.date,
+      description: `Bill - Stock: ${bill.stockNumber || 'N/A'}`,
+      payments: 0,
+      bills: bill.billTotal,
+      type: 'bill'
+    })));
+    
+    // Add payments
+    transactions.push(...payments.map(payment => ({
+      date: payment.date,
+      description: payment.notes || 'Payment',
+      payments: payment.amount,
+      bills: 0,
+      type: 'payment'
+    })));
 
     // Sort by date (oldest first, latest at bottom)
     transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
     
     setCombinedTransactions(transactions);
-  }, [bills, payments]);
+  }, [bills, payments, customer]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);

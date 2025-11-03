@@ -79,15 +79,13 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Customer'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -96,11 +94,13 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
               const Text(
                 'Add Customer',
                 style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                  letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -108,60 +108,64 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
                     children: [
                       if (_errorMessage != null)
                         Container(
-                          padding: const EdgeInsets.all(12),
-                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(14),
+                          margin: const EdgeInsets.only(bottom: 20),
                           decoration: BoxDecoration(
-                            color: Colors.red.shade50,
-                            border: Border.all(color: Colors.red.shade200),
-                            borderRadius: BorderRadius.circular(4),
+                            color: Colors.grey.shade50,
+                            border: Border.all(color: Colors.black.withOpacity(0.2)),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error_outline, color: Colors.red.shade700),
-                              const SizedBox(width: 8),
+                              const Icon(Icons.error_outline, color: Colors.black, size: 20),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   _errorMessage!,
-                                  style: TextStyle(color: Colors.red.shade700),
+                                  style: const TextStyle(color: Colors.black87, fontSize: 14),
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.close, size: 20, color: Colors.red.shade700),
+                                icon: const Icon(Icons.close, size: 18, color: Colors.black54),
                                 onPressed: () {
                                   setState(() {
                                     _errorMessage = null;
                                   });
                                 },
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
                               ),
                             ],
                           ),
                         ),
                       if (_successMessage != null)
                         Container(
-                          padding: const EdgeInsets.all(12),
-                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(14),
+                          margin: const EdgeInsets.only(bottom: 20),
                           decoration: BoxDecoration(
-                            color: Colors.green.shade50,
-                            border: Border.all(color: Colors.green.shade200),
-                            borderRadius: BorderRadius.circular(4),
+                            color: Colors.grey.shade50,
+                            border: Border.all(color: Colors.black.withOpacity(0.2)),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.check_circle_outline, color: Colors.green.shade700),
-                              const SizedBox(width: 8),
+                              const Icon(Icons.check_circle_outline, color: Colors.black, size: 20),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   _successMessage!,
-                                  style: TextStyle(color: Colors.green.shade700),
+                                  style: const TextStyle(color: Colors.black87, fontSize: 14),
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.close, size: 20, color: Colors.green.shade700),
+                                icon: const Icon(Icons.close, size: 18, color: Colors.black54),
                                 onPressed: () {
                                   setState(() {
                                     _successMessage = null;
                                   });
                                 },
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
                               ),
                             ],
                           ),
@@ -170,8 +174,9 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
                         controller: _customerNameController,
                         decoration: const InputDecoration(
                           labelText: 'Customer Name *',
-                          border: OutlineInputBorder(),
+                          labelStyle: TextStyle(color: Colors.black54),
                         ),
+                        style: const TextStyle(color: Colors.black),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Please enter customer name';
@@ -179,42 +184,40 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       TextFormField(
                         controller: _locationController,
                         decoration: const InputDecoration(
                           labelText: 'Location',
-                          border: OutlineInputBorder(),
+                          labelStyle: TextStyle(color: Colors.black54),
                         ),
+                        style: const TextStyle(color: Colors.black),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       TextFormField(
                         controller: _contactNumberController,
                         decoration: const InputDecoration(
                           labelText: 'Contact Number',
-                          border: OutlineInputBorder(),
+                          labelStyle: TextStyle(color: Colors.black54),
                         ),
+                        style: const TextStyle(color: Colors.black),
                         keyboardType: TextInputType.phone,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       TextFormField(
                         controller: _pastBillsController,
                         decoration: const InputDecoration(
                           labelText: 'Past Bills',
-                          border: OutlineInputBorder(),
+                          labelStyle: TextStyle(color: Colors.black54),
                         ),
+                        style: const TextStyle(color: Colors.black),
                         keyboardType: TextInputType.numberWithOptions(decimal: true),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _loading ? null : _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
                           child: _loading
                               ? const SizedBox(
                                   height: 20,
@@ -225,7 +228,13 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
                                         AlwaysStoppedAnimation<Color>(Colors.white),
                                   ),
                                 )
-                              : const Text('Save Customer'),
+                              : const Text(
+                                  'Save Customer',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                         ),
                       ),
                     ],

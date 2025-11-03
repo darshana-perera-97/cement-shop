@@ -62,16 +62,32 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
 
   void _onCustomerSearchChanged(String value) {
     setState(() {
-      _showCustomerDropdown = value.isNotEmpty;
       if (value.isEmpty) {
         _selectedCustomerId = null;
         _selectedCustomerName = null;
+        // Show all customers when field is empty
+        _filteredCustomers = _customers;
+        _showCustomerDropdown = false; // Hide on empty, show on focus
+      } else {
+        _filteredCustomers = _customers
+            .where((customer) =>
+                customer.customerName.toLowerCase().contains(value.toLowerCase()) ||
+                customer.customerId.toLowerCase().contains(value.toLowerCase()) ||
+                (customer.location != null && 
+                 customer.location!.toLowerCase().contains(value.toLowerCase())))
+            .toList();
+        _showCustomerDropdown = true;
       }
-      _filteredCustomers = _customers
-          .where((customer) =>
-              customer.customerName.toLowerCase().contains(value.toLowerCase()) ||
-              customer.customerId.toLowerCase().contains(value.toLowerCase()))
-          .toList();
+    });
+  }
+
+  void _toggleCustomerDropdown() {
+    setState(() {
+      if (_customerSearchController.text.isEmpty) {
+        // Show all customers when dropdown is toggled
+        _filteredCustomers = _customers;
+      }
+      _showCustomerDropdown = !_showCustomerDropdown;
     });
   }
 
@@ -140,8 +156,6 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Payments'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -157,11 +171,13 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
               const Text(
                 'Add Payments',
                 style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                  letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -172,22 +188,24 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
                           padding: const EdgeInsets.all(12),
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: Colors.red.shade50,
-                            border: Border.all(color: Colors.red.shade200),
-                            borderRadius: BorderRadius.circular(4),
+                            color: Colors.grey.shade50,
+                            border: Border.all(color: Colors.black.withOpacity(0.2)),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error_outline, color: Colors.red.shade700),
-                              const SizedBox(width: 8),
+                              const Icon(Icons.error_outline, color: Colors.black, size: 20),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   _errorMessage!,
-                                  style: TextStyle(color: Colors.red.shade700),
+                                  style: const TextStyle(color: Colors.black87, fontSize: 14),
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.close, size: 20, color: Colors.red.shade700),
+                                icon: const Icon(Icons.close, size: 18, color: Colors.black54),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
                                 onPressed: () {
                                   setState(() {
                                     _errorMessage = null;
@@ -202,22 +220,24 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
                           padding: const EdgeInsets.all(12),
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: Colors.green.shade50,
-                            border: Border.all(color: Colors.green.shade200),
-                            borderRadius: BorderRadius.circular(4),
+                            color: Colors.grey.shade50,
+                            border: Border.all(color: Colors.black.withOpacity(0.2)),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.check_circle_outline, color: Colors.green.shade700),
-                              const SizedBox(width: 8),
+                              const Icon(Icons.check_circle_outline, color: Colors.black, size: 20),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   _successMessage!,
-                                  style: TextStyle(color: Colors.green.shade700),
+                                  style: const TextStyle(color: Colors.black87, fontSize: 14),
                                 ),
                               ),
                               IconButton(
-                                icon: Icon(Icons.close, size: 20, color: Colors.green.shade700),
+                                icon: const Icon(Icons.close, size: 18, color: Colors.black54),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
                                 onPressed: () {
                                   setState(() {
                                     _successMessage = null;
@@ -232,14 +252,24 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
                         children: [
                           TextFormField(
                             controller: _customerSearchController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Customer Name *',
-                              border: OutlineInputBorder(),
+                              border: const OutlineInputBorder(),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _showCustomerDropdown ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                  color: Colors.black54,
+                                ),
+                                onPressed: _toggleCustomerDropdown,
+                              ),
                             ),
                             onChanged: _onCustomerSearchChanged,
                             onTap: () {
                               setState(() {
-                                _showCustomerDropdown = _customerSearchController.text.isNotEmpty;
+                                if (_customerSearchController.text.isEmpty) {
+                                  _filteredCustomers = _customers;
+                                }
+                                _showCustomerDropdown = true;
                               });
                             },
                             validator: (value) {
@@ -249,8 +279,7 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
                               return null;
                             },
                           ),
-                          if (_showCustomerDropdown &&
-                              _customerSearchController.text.isNotEmpty)
+                          if (_showCustomerDropdown)
                             Positioned(
                               top: 60,
                               left: 0,
@@ -272,7 +301,10 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
                                 child: _filteredCustomers.isEmpty
                                     ? const Padding(
                                         padding: EdgeInsets.all(16.0),
-                                        child: Text('No customers found'),
+                                        child: Text(
+                                          'No customers found',
+                                          style: TextStyle(color: Colors.black87),
+                                        ),
                                       )
                                     : ListView.builder(
                                         shrinkWrap: true,
@@ -281,7 +313,33 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
                                           final customer = _filteredCustomers[index];
                                           return ListTile(
                                             title: Text(
-                                                '${customer.customerName} (${customer.customerId})'),
+                                              customer.customerName,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            subtitle: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  customer.customerId,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.black54,
+                                                  ),
+                                                ),
+                                                if (customer.location != null &&
+                                                    customer.location!.isNotEmpty)
+                                                  Text(
+                                                    customer.location!,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.black54,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                            dense: true,
                                             onTap: () => _selectCustomer(customer),
                                           );
                                         },
@@ -350,11 +408,6 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _loading ? null : _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
                           child: _loading
                               ? const SizedBox(
                                   height: 20,

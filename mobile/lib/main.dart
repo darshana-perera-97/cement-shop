@@ -63,46 +63,75 @@ class MyApp extends StatelessWidget {
       title: 'Cement App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.light,
+        colorScheme: ColorScheme.light(
+          primary: Colors.black,
+          onPrimary: Colors.white,
+          surface: Colors.white,
+          onSurface: Colors.black,
+          background: Colors.white,
         ),
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
         cardTheme: CardThemeData(
-          elevation: 2,
+          elevation: 0,
+          color: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey.shade200, width: 1),
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.deepPurple,
+            backgroundColor: Colors.black,
             foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.black,
-            side: const BorderSide(color: Colors.black),
+            side: const BorderSide(color: Colors.black, width: 1.5),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
         ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.deepPurple,
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.black,
           foregroundColor: Colors.white,
-          elevation: 2,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          iconTheme: const IconThemeData(color: Colors.white),
+          titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.black, width: 2),
           ),
           filled: false,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+        dividerTheme: DividerThemeData(
+          color: Colors.grey.shade200,
+          thickness: 1,
         ),
       ),
       routerConfig: _router,

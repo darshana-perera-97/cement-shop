@@ -1,17 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Table, Button, Alert, Spinner, Modal } from 'react-bootstrap';
+import { Container, Table, Button, Alert, Spinner, Modal, Form, Card } from 'react-bootstrap';
 import API_BASE_URL from '../config';
 
 function ViewBills() {
   const [bills, setBills] = useState([]);
+  const [filteredBills, setFilteredBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedBill, setSelectedBill] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchBills();
   }, []);
+
+  useEffect(() => {
+    filterBills();
+  }, [searchQuery, bills]);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
+  const filterBills = () => {
+    const query = searchQuery.toLowerCase().trim();
+    if (query === '') {
+      setFilteredBills(bills);
+    } else {
+      const filtered = bills.filter((bill) => {
+        const customerName = (bill.customerName || '').toLowerCase();
+        const stockNumber = (bill.stockNumber || '').toLowerCase();
+        const formattedDate = formatDate(bill.date).toLowerCase();
+        const dateString = (bill.date || '').toLowerCase();
+        
+        return customerName.includes(query) ||
+               stockNumber.includes(query) ||
+               formattedDate.includes(query) ||
+               dateString.includes(query);
+      });
+      setFilteredBills(filtered);
+    }
+  };
 
   const fetchBills = async () => {
     try {
@@ -20,6 +51,7 @@ function ViewBills() {
       if (response.ok) {
         const data = await response.json();
         setBills(data);
+        setFilteredBills(data);
       } else {
         setError('Failed to fetch bills');
       }
@@ -28,11 +60,6 @@ function ViewBills() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
   };
 
   const handleView = (bill) => {
@@ -66,34 +93,71 @@ function ViewBills() {
       {bills.length === 0 ? (
         <Alert variant="info">No bills found.</Alert>
       ) : (
-        <Table striped bordered hover>
-          <thead className="table-dark">
-            <tr>
-              <th>Date</th>
-              <th>Customer Name</th>
-              <th>Total Bill</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bills.map((bill, index) => (
-              <tr key={index}>
-                <td>{formatDate(bill.date)}</td>
-                <td>{bill.customerName}</td>
-                <td>{bill.billTotal.toFixed(2)}</td>
-                <td>
-                  <Button
-                    variant="outline-dark"
-                    size="sm"
-                    onClick={() => handleView(bill)}
-                  >
-                    View
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+        <>
+          {/* Search Field */}
+          <Card className="mb-3">
+            <Card.Body>
+              <Form.Group>
+                <Form.Control
+                  type="text"
+                  placeholder="Search by customer name, stock number, or date"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ outline: 'none', boxShadow: 'none' }}
+                  onFocus={(e) => e.target.style.outline = 'none'}
+                />
+              </Form.Group>
+            </Card.Body>
+          </Card>
+
+          {/* Results count */}
+          {searchQuery && (
+            <div className="mb-3" style={{ fontSize: '14px', color: '#6c757d' }}>
+              {filteredBills.length} bill{filteredBills.length !== 1 ? 's' : ''} found
+            </div>
+          )}
+
+          {/* Bills Table */}
+          {filteredBills.length === 0 ? (
+            <Card>
+              <Card.Body className="text-center py-5">
+                <div style={{ fontSize: '48px', color: '#6c757d', marginBottom: '16px' }}>🔍</div>
+                <div style={{ color: '#6c757d' }}>No bills match your search</div>
+              </Card.Body>
+            </Card>
+          ) : (
+            <Table striped bordered hover>
+              <thead className="table-dark">
+                <tr>
+                  <th>Date</th>
+                  <th>Customer Name</th>
+                  <th>Stock ID</th>
+                  <th>Total Bill</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBills.map((bill, index) => (
+                  <tr key={index}>
+                    <td>{formatDate(bill.date)}</td>
+                    <td>{bill.customerName}</td>
+                    <td>{bill.stockNumber || 'N/A'}</td>
+                    <td>{bill.billTotal.toFixed(2)}</td>
+                    <td>
+                      <Button
+                        variant="outline-dark"
+                        size="sm"
+                        onClick={() => handleView(bill)}
+                      >
+                        View
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </>
       )}
 
       {/* Modal for viewing bill details */}

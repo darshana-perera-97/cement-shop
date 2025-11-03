@@ -77,8 +77,6 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Customer Details'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -89,10 +87,10 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
           : _errorMessage != null || _customer == null
               ? Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(20.0),
                     child: Text(
                       _errorMessage ?? 'Customer not found',
-                      style: TextStyle(color: Colors.red.shade700),
+                      style: const TextStyle(color: Colors.black87),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -100,22 +98,24 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
               : RefreshIndicator(
                   onRefresh: _fetchCustomerData,
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(20.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'Customer Details',
                           style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 32,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                            letterSpacing: -0.5,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                         // Basic Customer Details
                         Card(
                           child: Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(20.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -146,15 +146,16 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                             Expanded(
                               child: Card(
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
+                                  padding: const EdgeInsets.all(20.0),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Total Bills',
                                         style: TextStyle(
-                                          color: Colors.grey.shade600,
+                                          color: Colors.black54,
                                           fontSize: 14,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -177,15 +178,16 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                             Expanded(
                               child: Card(
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
+                                  padding: const EdgeInsets.all(20.0),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Total Payments',
                                         style: TextStyle(
-                                          color: Colors.grey.shade600,
+                                          color: Colors.black54,
                                           fontSize: 14,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -208,15 +210,16 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                             Expanded(
                               child: Card(
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
+                                  padding: const EdgeInsets.all(20.0),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'To be Paid',
                                         style: TextStyle(
-                                          color: Colors.grey.shade600,
+                                          color: Colors.black54,
                                           fontSize: 14,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -232,16 +235,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
-                                          color: (((_customer!.pastBills) +
-                                                      _bills.fold(0.0,
-                                                          (sum, bill) =>
-                                                              sum + bill.billTotal)) -
-                                                  _payments.fold(0.0,
-                                                      (sum, payment) =>
-                                                          sum + payment.amount)) >
-                                              0
-                                              ? Colors.red.shade700
-                                              : Colors.green.shade700,
+                                          color: Colors.black87,
                                         ),
                                       ),
                                     ],
@@ -255,7 +249,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                         // Transaction History
                         Card(
                           child: Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(20.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -301,6 +295,45 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
   Widget _buildTransactionTable() {
     // Combine bills and payments
     final transactions = <_Transaction>[];
+    
+    // Add past bills as the first transaction (if it exists)
+    if (_customer!.pastBills > 0) {
+      // Calculate the earliest date from all transactions, or use a default early date
+      String pastBillsDate = '1900-01-01';
+      if (_bills.isNotEmpty) {
+        final allDates = _bills.map((b) => b.date).toList();
+        allDates.sort();
+        // Use one day before the earliest bill date
+        try {
+          final earliestDate = DateTime.parse(allDates.first);
+          pastBillsDate = DateTime(earliestDate.year, earliestDate.month, earliestDate.day - 1)
+              .toIso8601String()
+              .split('T')[0];
+        } catch (e) {
+          // If date parsing fails, use default
+        }
+      } else if (_payments.isNotEmpty) {
+        final allDates = _payments.map((p) => p.date).toList();
+        allDates.sort();
+        try {
+          final earliestDate = DateTime.parse(allDates.first);
+          pastBillsDate = DateTime(earliestDate.year, earliestDate.month, earliestDate.day - 1)
+              .toIso8601String()
+              .split('T')[0];
+        } catch (e) {
+          // If date parsing fails, use default
+        }
+      }
+      
+      transactions.add(_Transaction(
+        date: pastBillsDate,
+        description: 'Past Bills',
+        payments: 0,
+        bills: _customer!.pastBills,
+        type: 'bill',
+      ));
+    }
+    
     transactions.addAll(_bills.map((bill) => _Transaction(
           date: bill.date,
           description: 'Bill - Stock: ${bill.stockNumber ?? 'N/A'}',
@@ -324,7 +357,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
         child: Center(
           child: Text(
             'No transactions found.',
-            style: TextStyle(color: Colors.blue.shade700),
+            style: const TextStyle(color: Colors.black87),
           ),
         ),
       );
@@ -334,7 +367,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
       border: TableBorder.all(color: Colors.grey.shade300),
       children: [
         TableRow(
-          decoration: BoxDecoration(color: Colors.grey.shade800),
+          decoration: BoxDecoration(color: Colors.black),
           children: const [
             Padding(
               padding: EdgeInsets.all(12.0),
@@ -402,10 +435,8 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                       ? transaction.payments.toStringAsFixed(2)
                       : '-',
                   textAlign: TextAlign.right,
-                  style: TextStyle(
-                    color: transaction.type == 'payment'
-                        ? Colors.green.shade700
-                        : Colors.grey.shade600,
+                  style: const TextStyle(
+                    color: Colors.black87,
                   ),
                 ),
               ),
@@ -416,10 +447,8 @@ class _CustomerDetailPageState extends State<CustomerDetailPage> {
                       ? transaction.bills.toStringAsFixed(2)
                       : '-',
                   textAlign: TextAlign.right,
-                  style: TextStyle(
-                    color: transaction.type == 'bill'
-                        ? Colors.red.shade700
-                        : Colors.grey.shade600,
+                  style: const TextStyle(
+                    color: Colors.black87,
                   ),
                 ),
               ),
