@@ -97,7 +97,11 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
       _selectedCustomerName = customer.customerName;
       _customerSearchController.text = customer.customerName;
       _showCustomerDropdown = false;
+      // Clear any error messages when customer is selected
+      _errorMessage = null;
     });
+    // Trigger form validation update
+    _formKey.currentState?.validate();
   }
 
   Future<void> _submitForm() async {
@@ -161,13 +165,22 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
           onPressed: () => context.go('/'),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      body: GestureDetector(
+        onTap: () {
+          // Close dropdown when tapping outside
+          if (_showCustomerDropdown) {
+            setState(() {
+              _showCustomerDropdown = false;
+            });
+          }
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               const Text(
                 'Add Payments',
                 style: TextStyle(
@@ -248,7 +261,8 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
                           ),
                         ),
                       // Customer Search
-                      Stack(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           TextFormField(
                             controller: _customerSearchController,
@@ -280,71 +294,56 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
                             },
                           ),
                           if (_showCustomerDropdown)
-                            Positioned(
-                              top: 60,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                constraints: const BoxConstraints(maxHeight: 200),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(color: Colors.grey.shade300),
-                                  borderRadius: BorderRadius.circular(4),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: _filteredCustomers.isEmpty
-                                    ? const Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Text(
-                                          'No customers found',
-                                          style: TextStyle(color: Colors.black87),
-                                        ),
-                                      )
-                                    : ListView.builder(
-                                        shrinkWrap: true,
-                                        itemCount: _filteredCustomers.length,
-                                        itemBuilder: (context, index) {
-                                          final customer = _filteredCustomers[index];
-                                          return ListTile(
-                                            title: Text(
-                                              customer.customerName,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                              ),
+                            Container(
+                              margin: const EdgeInsets.only(top: 4),
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(4),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: _filteredCustomers.isEmpty
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(16.0),
+                                      child: Text(
+                                        'No customers found',
+                                        style: TextStyle(color: Colors.black87),
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: _filteredCustomers.length,
+                                      itemBuilder: (context, index) {
+                                        final customer = _filteredCustomers[index];
+                                        return ListTile(
+                                          title: Text(
+                                            customer.customerName,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
                                             ),
-                                            subtitle: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  customer.customerId,
+                                          ),
+                                          subtitle: customer.location != null &&
+                                                  customer.location!.isNotEmpty
+                                              ? Text(
+                                                  customer.location!,
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.black54,
                                                   ),
-                                                ),
-                                                if (customer.location != null &&
-                                                    customer.location!.isNotEmpty)
-                                                  Text(
-                                                    customer.location!,
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: Colors.black54,
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                            dense: true,
-                                            onTap: () => _selectCustomer(customer),
-                                          );
-                                        },
-                                      ),
-                              ),
+                                                )
+                                              : null,
+                                          dense: true,
+                                          onTap: () => _selectCustomer(customer),
+                                        );
+                                      },
+                                    ),
                             ),
                         ],
                       ),
@@ -428,6 +427,7 @@ class _AddPaymentsPageState extends State<AddPaymentsPage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

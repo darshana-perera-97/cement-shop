@@ -363,27 +363,16 @@ class _AddBillPageState extends State<AddBillPage> {
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
-                                          subtitle: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                customer.customerId,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.black54,
-                                                ),
-                                              ),
-                                              if (customer.location != null &&
-                                                  customer.location!.isNotEmpty)
-                                                Text(
+                                          subtitle: customer.location != null &&
+                                                  customer.location!.isNotEmpty
+                                              ? Text(
                                                   customer.location!,
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.black54,
                                                   ),
-                                                ),
-                                            ],
-                                          ),
+                                                )
+                                              : null,
                                           dense: true,
                                           onTap: () => _selectCustomer(customer),
                                         );
@@ -459,7 +448,6 @@ class _AddBillPageState extends State<AddBillPage> {
           ),
         ),
       ),
-        ),
       ),
     );
   }
