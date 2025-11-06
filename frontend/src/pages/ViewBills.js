@@ -24,6 +24,13 @@ function ViewBills() {
     return date.toLocaleDateString();
   };
 
+  const formatDateMonthDay = (dateString) => {
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1; // getMonth() returns 0-11
+    const day = date.getDate();
+    return `${month}/${day}`;
+  };
+
   const filterBills = () => {
     const query = searchQuery.toLowerCase().trim();
     if (query === '') {
@@ -131,7 +138,7 @@ function ViewBills() {
                 <tr>
                   <th>Date</th>
                   <th>Customer Name</th>
-                  <th>Stock ID</th>
+                  <th className="d-none d-md-table-cell">Stock ID</th>
                   <th>Total Bill</th>
                   <th>Action</th>
                 </tr>
@@ -139,9 +146,12 @@ function ViewBills() {
               <tbody>
                 {filteredBills.map((bill, index) => (
                   <tr key={index}>
-                    <td>{formatDate(bill.date)}</td>
+                    <td>
+                      <span className="d-none d-md-inline">{formatDate(bill.date)}</span>
+                      <span className="d-inline d-md-none">{formatDateMonthDay(bill.date)}</span>
+                    </td>
                     <td>{bill.customerName}</td>
-                    <td>{bill.stockNumber || 'N/A'}</td>
+                    <td className="d-none d-md-table-cell">{bill.stockNumber || 'N/A'}</td>
                     <td>{bill.billTotal.toFixed(2)}</td>
                     <td>
                       <Button

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
 import API_BASE_URL from '../config';
+import SuccessModal from '../components/SuccessModal';
 
 function AddCustomer() {
     const [formData, setFormData] = useState({
@@ -11,6 +12,8 @@ function AddCustomer() {
     });
     const [loading, setLoading] = useState(false);
     const [alert, setAlert] = useState({ show: false, message: '', variant: '' });
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -42,11 +45,8 @@ function AddCustomer() {
             const data = await response.json();
 
             if (response.ok) {
-                setAlert({
-                    show: true,
-                    message: `Customer added successfully! Customer ID: ${data.customer.customerId}`,
-                    variant: 'success'
-                });
+                setSuccessMessage(`Customer added successfully! Customer ID: ${data.customer.customerId}`);
+                setShowSuccessModal(true);
                 // Reset form
                 setFormData({
                     customerName: '',
@@ -77,11 +77,16 @@ function AddCustomer() {
             <h1 className="mb-4">Add Customer</h1>
             <Card>
                 <Card.Body>
-                    {alert.show && (
+                    {alert.show && alert.variant !== 'success' && (
                         <Alert variant={alert.variant} dismissible onClose={() => setAlert({ show: false })}>
                             {alert.message}
                         </Alert>
                     )}
+                    <SuccessModal
+                        show={showSuccessModal}
+                        onHide={() => setShowSuccessModal(false)}
+                        message={successMessage}
+                    />
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3">
                             <Form.Label style={{ textAlign: 'left', display: 'block' }}>Customer Name *</Form.Label>
@@ -137,7 +142,7 @@ function AddCustomer() {
                             />
                         </Form.Group>
 
-                        <Button variant="primary" type="submit" disabled={loading}>
+                        <Button variant="dark" type="submit" disabled={loading}>
                             {loading ? 'Saving...' : 'Save Customer'}
                         </Button>
                     </Form>

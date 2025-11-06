@@ -106,7 +106,7 @@ function Stocks() {
                 <tr>
                   <th>Stock ID</th>
                   <th>Tokyo</th>
-                  <th>Sanstha</th>
+                  <th>Samudra</th>
                   <th>Atlas</th>
                   <th>Nipon</th>
                   <th>Total Number</th>
@@ -117,7 +117,7 @@ function Stocks() {
                   <tr key={index}>
                     <td>{stock.stockId}</td>
                     <td>{stock.tokyo || 0}</td>
-                    <td>{stock.sanstha || 0}</td>
+                    <td>{stock.Samudra || 0}</td>
                     <td>{stock.atlas || 0}</td>
                     <td>{stock.nipon || 0}</td>
                     <td>{stock.totalNumber || 0}</td>

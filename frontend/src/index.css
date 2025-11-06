@@ -11,3 +11,82 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Mobile view - smaller fonts */
+@media (max-width: 767px) {
+  body {
+    font-size: 0.9rem;
+  }
+  
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  h3 {
+    font-size: 1.25rem !important;
+  }
+  
+  h4 {
+    font-size: 1.1rem !important;
+  }
+  
+  h5 {
+    font-size: 1rem !important;
+  }
+  
+  h6 {
+    font-size: 0.9rem !important;
+  }
+  
+  .btn {
+    font-size: 0.875rem;
+  }
+  
+  .form-control {
+    font-size: 0.9rem;
+  }
+  
+  .form-label {
+    font-size: 0.875rem;
+  }
+  
+  .card-title {
+    font-size: 1rem !important;
+  }
+  
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+  
+  .nav-link {
+    font-size: 0.9rem;
+  }
+  
+  table {
+    font-size: 0.85rem;
+  }
+  
+  .table th,
+  thead th {
+    font-size: 8px !important;
+  }
+  
+  .table td {
+    font-size: 11px !important;
+    padding: 0.375rem !important;
+  }
+  
+  .table th {
+    padding: 0.375rem !important;
+  }
+  
+  .table td input,
+  .table td .form-control,
+  .table td select {
+    padding: 0.375rem !important;
+  }
+}

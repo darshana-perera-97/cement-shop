@@ -122,6 +122,13 @@ function CustomerDetail() {
     return date.toLocaleDateString();
   };
 
+  const formatDateMonthDay = (dateString) => {
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1; // getMonth() returns 0-11
+    const day = date.getDate();
+    return `${month}/${day}`;
+  };
+
   const totalBills = (customer?.pastBills || 0) + bills.reduce((sum, bill) => sum + (bill.billTotal || 0), 0);
   const totalPayments = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
   const toBePaid = totalBills - totalPayments;
@@ -230,7 +237,10 @@ function CustomerDetail() {
                   <tbody>
                     {combinedTransactions.map((transaction, index) => (
                       <tr key={index}>
-                        <td>{formatDate(transaction.date)}</td>
+                        <td>
+                          <span className="d-none d-md-inline">{formatDate(transaction.date)}</span>
+                          <span className="d-inline d-md-none">{formatDateMonthDay(transaction.date)}</span>
+                        </td>
                         <td>{transaction.description}</td>
                         <td style={{ color: transaction.type === 'payment' ? '#28a745' : '#6c757d' }}>
                           {transaction.payments > 0 ? transaction.payments.toFixed(2) : '-'}

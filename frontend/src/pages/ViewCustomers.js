@@ -115,7 +115,7 @@ function ViewCustomers() {
             <Table striped bordered hover>
               <thead className="table-dark">
                 <tr>
-                  <th>Customer ID</th>
+                  <th className="d-none d-md-table-cell">Customer ID</th>
                   <th>Customer Name</th>
                   <th>Action</th>
                 </tr>
@@ -123,7 +123,7 @@ function ViewCustomers() {
               <tbody>
                 {filteredCustomers.map((customer) => (
                   <tr key={customer.customerId}>
-                    <td>{customer.customerId}</td>
+                    <td className="d-none d-md-table-cell">{customer.customerId}</td>
                     <td>{customer.customerName}</td>
                     <td>
                       <Button

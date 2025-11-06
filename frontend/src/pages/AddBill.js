@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Card, Alert, Table, ListGroup } from 'react-bootstrap';
 import API_BASE_URL from '../config';
+import SuccessModal from '../components/SuccessModal';
 
 function AddBill() {
   const [formData, setFormData] = useState({
@@ -14,12 +15,14 @@ function AddBill() {
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [items, setItems] = useState([
     { name: 'Tokyo', bags: '', unitPrice: '', total: 0 },
-    { name: 'Sanstha', bags: '', unitPrice: '', total: 0 },
+    { name: 'Samudra', bags: '', unitPrice: '', total: 0 },
     { name: 'Atlas', bags: '', unitPrice: '', total: 0 },
     { name: 'Nipon', bags: '', unitPrice: '', total: 0 }
   ]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ show: false, message: '', variant: '' });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchCustomers();
@@ -135,11 +138,8 @@ function AddBill() {
       const data = await response.json();
 
       if (response.ok) {
-        setAlert({
-          show: true,
-          message: 'Bill added successfully!',
-          variant: 'success'
-        });
+        setSuccessMessage('Bill added successfully!');
+        setShowSuccessModal(true);
         // Reset form
         setFormData({
           customerId: '',
@@ -150,7 +150,7 @@ function AddBill() {
         setCustomerSearch('');
         setItems([
           { name: 'Tokyo', bags: '', unitPrice: '', total: 0 },
-          { name: 'Sanstha', bags: '', unitPrice: '', total: 0 },
+          { name: 'Samudra', bags: '', unitPrice: '', total: 0 },
           { name: 'Atlas', bags: '', unitPrice: '', total: 0 },
           { name: 'Nipon', bags: '', unitPrice: '', total: 0 }
         ]);
@@ -177,11 +177,16 @@ function AddBill() {
       <h1 className="mb-4">Add Bill</h1>
       <Card>
         <Card.Body>
-          {alert.show && (
+          {alert.show && alert.variant !== 'success' && (
             <Alert variant={alert.variant} dismissible onClose={() => setAlert({ show: false })}>
               {alert.message}
             </Alert>
           )}
+          <SuccessModal
+            show={showSuccessModal}
+            onHide={() => setShowSuccessModal(false)}
+            message={successMessage}
+          />
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3 customer-search-container" style={{ position: 'relative' }}>
               <Form.Label style={{ textAlign: 'left', display: 'block' }}>Customer Name *</Form.Label>
@@ -306,7 +311,7 @@ function AddBill() {
               </Table>
             </Form.Group>
 
-            <Button variant="primary" type="submit" disabled={loading}>
+            <Button variant="dark" type="submit" disabled={loading}>
               {loading ? 'Saving...' : 'Save Bill'}
             </Button>
           </Form>

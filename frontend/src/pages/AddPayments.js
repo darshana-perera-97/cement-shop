@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Card, Alert, ListGroup } from 'react-bootstrap';
 import API_BASE_URL from '../config';
+import SuccessModal from '../components/SuccessModal';
 
 function AddPayments() {
   const [formData, setFormData] = useState({
@@ -15,6 +16,8 @@ function AddPayments() {
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ show: false, message: '', variant: '' });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchCustomers();
@@ -106,11 +109,8 @@ function AddPayments() {
       const data = await response.json();
 
       if (response.ok) {
-        setAlert({
-          show: true,
-          message: 'Payment added successfully!',
-          variant: 'success'
-        });
+        setSuccessMessage('Payment added successfully!');
+        setShowSuccessModal(true);
         // Reset form
         setFormData({
           customerId: '',
@@ -143,11 +143,16 @@ function AddPayments() {
       <h1 className="mb-4">Add Payments</h1>
       <Card>
         <Card.Body>
-          {alert.show && (
+          {alert.show && alert.variant !== 'success' && (
             <Alert variant={alert.variant} dismissible onClose={() => setAlert({ show: false })}>
               {alert.message}
             </Alert>
           )}
+          <SuccessModal
+            show={showSuccessModal}
+            onHide={() => setShowSuccessModal(false)}
+            message={successMessage}
+          />
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3 customer-search-container" style={{ position: 'relative' }}>
               <Form.Label style={{ textAlign: 'left', display: 'block' }}>Customer Name *</Form.Label>
@@ -239,7 +244,7 @@ function AddPayments() {
               />
             </Form.Group>
 
-            <Button variant="primary" type="submit" disabled={loading}>
+            <Button variant="dark" type="submit" disabled={loading}>
               {loading ? 'Saving...' : 'Save Payment'}
             </Button>
           </Form>
