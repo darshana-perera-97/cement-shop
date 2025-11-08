@@ -270,6 +270,145 @@ app.get('/api/bills', (req, res) => {
   }
 });
 
+app.put('/api/bills', (req, res) => {
+  try {
+    console.log('PUT /api/bills - Updating bill');
+    const { createdAt, customerId, customerName, stockNumber, date, items, billTotal } = req.body;
+
+    // Validation
+    if (!createdAt) {
+      console.log('Validation failed: Missing createdAt identifier');
+      return res.status(400).json({ error: 'Bill identifier (createdAt) is required' });
+    }
+    if (!customerId || !customerName) {
+      console.log('Validation failed: Missing customer information');
+      return res.status(400).json({ error: 'Customer selection is required' });
+    }
+    if (!stockNumber || !date) {
+      console.log('Validation failed: Missing required fields');
+      return res.status(400).json({ error: 'Stock number and date are required' });
+    }
+
+    console.log('Validation passed, reading existing bills...');
+    const bills = readBills();
+    
+    // Find the bill to update by createdAt
+    const billIndex = bills.findIndex(b => b.createdAt === createdAt);
+    
+    if (billIndex === -1) {
+      console.log('Bill not found with createdAt:', createdAt);
+      return res.status(404).json({ error: 'Bill not found' });
+    }
+
+    // Store old bill data for stock reversal
+    const oldBill = bills[billIndex];
+
+    // Update bill object
+    const updatedBill = {
+      ...oldBill,
+      customerId,
+      customerName,
+      stockNumber,
+      date,
+      items: items || [],
+      billTotal: billTotal || 0,
+    };
+
+    console.log('Updated bill object:', JSON.stringify(updatedBill, null, 2));
+
+    // Replace the bill in array
+    bills[billIndex] = updatedBill;
+
+    // Save to file
+    writeBills(bills);
+
+    // Update stocks data - reverse old bill and apply new bill
+    console.log('Updating stocks data...');
+    const stocks = readStocks();
+    
+    // Reverse old bill stock changes
+    const oldTokyoCount = oldBill.items.find(item => item.name === 'Tokyo')?.bags || 0;
+    const oldSansthaCount = oldBill.items.find(item => item.name === 'Sanstha')?.bags || 0;
+    const oldAtlasCount = oldBill.items.find(item => item.name === 'Atlas')?.bags || 0;
+    const oldNiponCount = oldBill.items.find(item => item.name === 'Nipon')?.bags || 0;
+    
+    // Calculate new bill cement counts
+    const newTokyoCount = items.find(item => item.name === 'Tokyo')?.bags || 0;
+    const newSansthaCount = items.find(item => item.name === 'Sanstha')?.bags || 0;
+    const newAtlasCount = items.find(item => item.name === 'Atlas')?.bags || 0;
+    const newNiponCount = items.find(item => item.name === 'Nipon')?.bags || 0;
+    
+    // Update old stock (reverse)
+    const oldStockIndex = stocks.findIndex(s => s.stockId === oldBill.stockNumber);
+    if (oldStockIndex !== -1) {
+      stocks[oldStockIndex].tokyo = (parseFloat(stocks[oldStockIndex].tokyo) || 0) - parseFloat(oldTokyoCount);
+      stocks[oldStockIndex].sanstha = (parseFloat(stocks[oldStockIndex].sanstha) || 0) - parseFloat(oldSansthaCount);
+      stocks[oldStockIndex].atlas = (parseFloat(stocks[oldStockIndex].atlas) || 0) - parseFloat(oldAtlasCount);
+      stocks[oldStockIndex].nipon = (parseFloat(stocks[oldStockIndex].nipon) || 0) - parseFloat(oldNiponCount);
+      stocks[oldStockIndex].totalNumber = (parseFloat(stocks[oldStockIndex].totalNumber) || 0) - 
+        (parseFloat(oldTokyoCount) + parseFloat(oldSansthaCount) + parseFloat(oldAtlasCount) + parseFloat(oldNiponCount));
+    }
+    
+    // Update new stock (apply)
+    const newStockIndex = stocks.findIndex(s => s.stockId === stockNumber);
+    const totalNumber = parseFloat(newTokyoCount) + parseFloat(newSansthaCount) + parseFloat(newAtlasCount) + parseFloat(newNiponCount);
+    
+    if (newStockIndex !== -1) {
+      stocks[newStockIndex].tokyo = (parseFloat(stocks[newStockIndex].tokyo) || 0) + parseFloat(newTokyoCount);
+      stocks[newStockIndex].sanstha = (parseFloat(stocks[newStockIndex].sanstha) || 0) + parseFloat(newSansthaCount);
+      stocks[newStockIndex].atlas = (parseFloat(stocks[newStockIndex].atlas) || 0) + parseFloat(newAtlasCount);
+      stocks[newStockIndex].nipon = (parseFloat(stocks[newStockIndex].nipon) || 0) + parseFloat(newNiponCount);
+      stocks[newStockIndex].totalNumber = (parseFloat(stocks[newStockIndex].totalNumber) || 0) + parseFloat(totalNumber);
+      console.log(`Updated existing stock ${stockNumber}`);
+    } else {
+      // Create new stock if it doesn't exist
+      stocks.push({
+        stockId: stockNumber,
+        tokyo: parseFloat(newTokyoCount) || 0,
+        sanstha: parseFloat(newSansthaCount) || 0,
+        atlas: parseFloat(newAtlasCount) || 0,
+        nipon: parseFloat(newNiponCount) || 0,
+        totalNumber: parseFloat(totalNumber) || 0,
+        createdAt: new Date().toISOString()
+      });
+      console.log(`Created new stock ${stockNumber}`);
+    }
+
+    // Save stocks
+    writeStocks(stocks);
+
+    // Update customer data in customers.json - update totalBills
+    console.log('Updating customer totalBills...');
+    const customers = readCustomers();
+    
+    // Update old customer
+    if (oldBill.customerId !== customerId) {
+      const oldCustomerIndex = customers.findIndex(c => c.customerId === oldBill.customerId);
+      if (oldCustomerIndex !== -1) {
+        const oldCustomerBills = bills.filter(b => b.customerId === oldBill.customerId);
+        const oldTotalBills = oldCustomerBills.reduce((sum, bill) => sum + (bill.billTotal || 0), 0);
+        customers[oldCustomerIndex].totalBills = oldTotalBills;
+      }
+    }
+    
+    // Update new customer
+    const customerIndex = customers.findIndex(c => c.customerId === customerId);
+    if (customerIndex !== -1) {
+      const customerBills = bills.filter(b => b.customerId === customerId);
+      const totalBills = customerBills.reduce((sum, bill) => sum + (bill.billTotal || 0), 0);
+      customers[customerIndex].totalBills = totalBills;
+      writeCustomers(customers);
+      console.log(`Updated customer ${customerId} with totalBills: ${totalBills}`);
+    }
+
+    console.log('Bill updated successfully');
+    res.status(200).json({ message: 'Bill updated successfully', bill: updatedBill });
+  } catch (error) {
+    console.error('Error updating bill:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Helper function to read payments
 function readPayments() {
   const filePath = path.join(dataDir, 'payments.json');

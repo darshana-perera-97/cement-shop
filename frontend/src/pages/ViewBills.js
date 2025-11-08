@@ -10,6 +10,14 @@ function ViewBills() {
   const [selectedBill, setSelectedBill] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    stockNumber: '',
+    date: '',
+    items: []
+  });
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     fetchBills();
@@ -71,12 +79,126 @@ function ViewBills() {
 
   const handleView = (bill) => {
     setSelectedBill(bill);
+    setEditData({
+      stockNumber: bill.stockNumber || '',
+      date: bill.date,
+      items: bill.items.map(item => ({
+        name: item.name,
+        bags: item.bags,
+        unitPrice: item.unitPrice,
+        total: item.total
+      }))
+    });
+    setIsEditing(false);
+    setSaveError('');
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedBill(null);
+    setIsEditing(false);
+    setSaveError('');
+  };
+
+  const handleEditToggle = () => {
+    setIsEditing(true);
+    setSaveError('');
+  };
+
+  const handleEditCancel = () => {
+    if (selectedBill) {
+      setEditData({
+        stockNumber: selectedBill.stockNumber || '',
+        date: selectedBill.date,
+        items: selectedBill.items.map(item => ({
+          name: item.name,
+          bags: item.bags,
+          unitPrice: item.unitPrice,
+          total: item.total
+        }))
+      });
+    }
+    setIsEditing(false);
+    setSaveError('');
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleItemChange = (index, field, value) => {
+    const newItems = [...editData.items];
+    newItems[index] = {
+      ...newItems[index],
+      [field]: parseFloat(value) || 0
+    };
+    
+    // Calculate total for this item
+    const bags = newItems[index].bags || 0;
+    const unitPrice = newItems[index].unitPrice || 0;
+    newItems[index].total = bags * unitPrice;
+    
+    setEditData(prev => ({
+      ...prev,
+      items: newItems
+    }));
+  };
+
+  const calculateBillTotal = () => {
+    return editData.items.reduce((sum, item) => sum + (item.total || 0), 0);
+  };
+
+  const handleSave = async () => {
+    if (!selectedBill || !selectedBill.createdAt) {
+      setSaveError('Cannot update bill: missing identifier');
+      return;
+    }
+
+    setSaving(true);
+    setSaveError('');
+
+    try {
+      const billData = {
+        createdAt: selectedBill.createdAt,
+        customerId: selectedBill.customerId,
+        customerName: selectedBill.customerName,
+        stockNumber: editData.stockNumber,
+        date: editData.date,
+        items: editData.items.map(item => ({
+          name: item.name,
+          bags: item.bags || 0,
+          unitPrice: item.unitPrice || 0,
+          total: item.total || 0
+        })),
+        billTotal: calculateBillTotal()
+      };
+
+      const response = await fetch(`${API_BASE_URL}/api/bills`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(billData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Refresh bills list
+        await fetchBills();
+        handleCloseModal();
+      } else {
+        setSaveError(data.error || 'Failed to update bill');
+      }
+    } catch (error) {
+      setSaveError('Error connecting to server. Please make sure the backend server is running.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -178,11 +300,41 @@ function ViewBills() {
         <Modal.Body>
           {selectedBill && (
             <>
+              {saveError && (
+                <Alert variant="danger" dismissible onClose={() => setSaveError('')}>
+                  {saveError}
+                </Alert>
+              )}
               <div className="mb-3">
                 <p><strong>Customer ID:</strong> {selectedBill.customerId}</p>
                 <p><strong>Customer Name:</strong> {selectedBill.customerName}</p>
-                <p><strong>Stock Number:</strong> {selectedBill.stockNumber}</p>
-                <p><strong>Date:</strong> {formatDate(selectedBill.date)}</p>
+                {isEditing ? (
+                  <>
+                    <Form.Group className="mb-2">
+                      <Form.Label><strong>Stock Number:</strong></Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={editData.stockNumber}
+                        onChange={(e) => handleEditChange('stockNumber', e.target.value)}
+                        style={{ outline: 'none', boxShadow: 'none' }}
+                      />
+                    </Form.Group>
+                    <Form.Group className="mb-2">
+                      <Form.Label><strong>Date:</strong></Form.Label>
+                      <Form.Control
+                        type="date"
+                        value={editData.date}
+                        onChange={(e) => handleEditChange('date', e.target.value)}
+                        style={{ outline: 'none', boxShadow: 'none' }}
+                      />
+                    </Form.Group>
+                  </>
+                ) : (
+                  <>
+                    <p><strong>Stock Number:</strong> {selectedBill.stockNumber || 'N/A'}</p>
+                    <p><strong>Date:</strong> {formatDate(selectedBill.date)}</p>
+                  </>
+                )}
               </div>
               <Table striped bordered hover>
                 <thead className="table-dark">
@@ -194,14 +346,38 @@ function ViewBills() {
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedBill.items.map((item, itemIndex) => (
+                  {editData.items.map((item, itemIndex) => (
                     <tr key={itemIndex}>
                       <td style={{ textAlign: 'left', padding: '0.375rem 0.75rem' }}>
                         {item.name}
                       </td>
-                      <td style={{ padding: '0.375rem 0.75rem' }}>{item.bags}</td>
                       <td style={{ padding: '0.375rem 0.75rem' }}>
-                        {item.unitPrice.toFixed(2)}
+                        {isEditing ? (
+                          <Form.Control
+                            type="number"
+                            step="0.01"
+                            value={item.bags}
+                            onChange={(e) => handleItemChange(itemIndex, 'bags', e.target.value)}
+                            style={{ outline: 'none', boxShadow: 'none', border: 'none', padding: '0.375rem 0.75rem' }}
+                            onFocus={(e) => e.target.style.outline = 'none'}
+                          />
+                        ) : (
+                          item.bags
+                        )}
+                      </td>
+                      <td style={{ padding: '0.375rem 0.75rem' }}>
+                        {isEditing ? (
+                          <Form.Control
+                            type="number"
+                            step="0.01"
+                            value={item.unitPrice}
+                            onChange={(e) => handleItemChange(itemIndex, 'unitPrice', e.target.value)}
+                            style={{ outline: 'none', boxShadow: 'none', border: 'none', padding: '0.375rem 0.75rem' }}
+                            onFocus={(e) => e.target.style.outline = 'none'}
+                          />
+                        ) : (
+                          item.unitPrice.toFixed(2)
+                        )}
                       </td>
                       <td style={{ padding: '0.375rem 0.75rem' }}>
                         {item.total.toFixed(2)}
@@ -216,7 +392,7 @@ function ViewBills() {
                       Bill Total:
                     </td>
                     <td style={{ fontWeight: 'bold', padding: '0.375rem 0.75rem' }}>
-                      {selectedBill.billTotal.toFixed(2)}
+                      {isEditing ? calculateBillTotal().toFixed(2) : selectedBill.billTotal.toFixed(2)}
                     </td>
                   </tr>
                 </tbody>
@@ -225,9 +401,25 @@ function ViewBills() {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Close
-          </Button>
+          {isEditing ? (
+            <>
+              <Button variant="secondary" onClick={handleEditCancel} disabled={saving}>
+                Cancel
+              </Button>
+              <Button variant="dark" onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : 'Save'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="dark" onClick={handleEditToggle}>
+                Edit Data
+              </Button>
+              <Button variant="secondary" onClick={handleCloseModal}>
+                Close
+              </Button>
+            </>
+          )}
         </Modal.Footer>
       </Modal>
     </Container>

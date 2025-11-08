@@ -90,6 +90,7 @@ class _ViewBillsPageState extends State<ViewBillsPage> {
           bill: bill,
           onClose: () {
             Navigator.of(context).pop();
+            _fetchBills(); // Refresh bills after edit
           },
           formatDate: _formatDate,
         );
@@ -350,7 +351,7 @@ class _ViewBillsPageState extends State<ViewBillsPage> {
   }
 }
 
-class _BillDetailModal extends StatelessWidget {
+class _BillDetailModal extends StatefulWidget {
   final Bill bill;
   final VoidCallback onClose;
   final String Function(String) formatDate;
@@ -360,6 +361,116 @@ class _BillDetailModal extends StatelessWidget {
     required this.onClose,
     required this.formatDate,
   });
+
+  @override
+  State<_BillDetailModal> createState() => _BillDetailModalState();
+}
+
+class _BillDetailModalState extends State<_BillDetailModal> {
+  bool _isEditing = false;
+  bool _loading = false;
+  String? _errorMessage;
+  
+  late TextEditingController _stockNumberController;
+  late TextEditingController _dateController;
+  late List<TextEditingController> _bagsControllers;
+  late List<TextEditingController> _unitPriceControllers;
+  late List<double> _itemTotals;
+
+  @override
+  void initState() {
+    super.initState();
+    _stockNumberController = TextEditingController(text: widget.bill.stockNumber ?? '');
+    _dateController = TextEditingController(text: widget.bill.date);
+    _bagsControllers = widget.bill.items.map((item) => 
+      TextEditingController(text: item.bags.toStringAsFixed(0))
+    ).toList();
+    _unitPriceControllers = widget.bill.items.map((item) => 
+      TextEditingController(text: item.unitPrice.toStringAsFixed(2))
+    ).toList();
+    _itemTotals = widget.bill.items.map((item) => item.total).toList();
+    
+    // Add listeners to update totals
+    for (int i = 0; i < _bagsControllers.length; i++) {
+      _bagsControllers[i].addListener(() => _updateItemTotal(i));
+      _unitPriceControllers[i].addListener(() => _updateItemTotal(i));
+    }
+  }
+
+  @override
+  void dispose() {
+    _stockNumberController.dispose();
+    _dateController.dispose();
+    for (var controller in _bagsControllers) {
+      controller.dispose();
+    }
+    for (var controller in _unitPriceControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _updateItemTotal(int index) {
+    if (!_isEditing) return;
+    setState(() {
+      final bags = double.tryParse(_bagsControllers[index].text) ?? 0;
+      final unitPrice = double.tryParse(_unitPriceControllers[index].text) ?? 0;
+      _itemTotals[index] = bags * unitPrice;
+    });
+  }
+
+  double _calculateBillTotal() {
+    return _itemTotals.fold(0.0, (sum, total) => sum + total);
+  }
+
+  Future<void> _saveBill() async {
+    if (widget.bill.createdAt == null) {
+      setState(() {
+        _errorMessage = 'Cannot update bill: missing identifier';
+      });
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final updatedBill = Bill(
+        customerId: widget.bill.customerId,
+        customerName: widget.bill.customerName,
+        stockNumber: _stockNumberController.text.trim().isEmpty 
+            ? null 
+            : _stockNumberController.text.trim(),
+        date: _dateController.text,
+        items: widget.bill.items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final originalItem = entry.value;
+          return BillItem(
+            name: originalItem.name,
+            bags: double.tryParse(_bagsControllers[index].text) ?? 0,
+            unitPrice: double.tryParse(_unitPriceControllers[index].text) ?? 0,
+            total: _itemTotals[index],
+          );
+        }).toList(),
+        billTotal: _calculateBillTotal(),
+        createdAt: widget.bill.createdAt,
+      );
+
+      await ApiService.updateBill(updatedBill);
+      
+      if (mounted) {
+        Navigator.of(context).pop();
+        widget.onClose();
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -386,29 +497,77 @@ class _BillDetailModal extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (!_isEditing)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _isEditing = true;
+                          _errorMessage = null;
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Edit Data'),
+                    ),
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: onClose,
+                    onPressed: _isEditing ? () {
+                      setState(() {
+                        _isEditing = false;
+                        _errorMessage = null;
+                        // Reset to original values
+                        _stockNumberController.text = widget.bill.stockNumber ?? '';
+                        _dateController.text = widget.bill.date;
+                        for (int i = 0; i < widget.bill.items.length; i++) {
+                          _bagsControllers[i].text = widget.bill.items[i].bags.toStringAsFixed(0);
+                          _unitPriceControllers[i].text = widget.bill.items[i].unitPrice.toStringAsFixed(2);
+                          _itemTotals[i] = widget.bill.items[i].total;
+                        }
+                      });
+                    } : onClose,
                   ),
                 ],
               ),
             ),
+            if (_errorMessage != null)
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  border: Border.all(color: Colors.red.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDetailRow('Customer ID:', bill.customerId),
-                    _buildDetailRow('Customer Name:', bill.customerName),
-                    _buildDetailRow('Stock Number:', bill.stockNumber ?? 'N/A'),
-                    _buildDetailRow('Date:', formatDate(bill.date)),
+                    _buildDetailRow('Customer ID:', widget.bill.customerId, false),
+                    _buildDetailRow('Customer Name:', widget.bill.customerName, false),
+                    _buildDetailRow('Stock Number:', '', true, controller: _stockNumberController),
+                    _buildDetailRow('Date:', '', true, controller: _dateController, isDate: true),
                     const SizedBox(height: 16),
                     Table(
                       border: TableBorder.all(color: Colors.grey.shade300),
                       children: [
                         TableRow(
-                                  decoration: BoxDecoration(color: Colors.black),
+                          decoration: BoxDecoration(color: Colors.black),
                           children: const [
                             Padding(
                               padding: EdgeInsets.all(12.0),
@@ -455,8 +614,9 @@ class _BillDetailModal extends StatelessWidget {
                             ),
                           ],
                         ),
-                        ...bill.items.map((item) {
-                          final index = bill.items.indexOf(item);
+                        ...widget.bill.items.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final item = entry.value;
                           return TableRow(
                             decoration: BoxDecoration(
                               color: index % 2 == 0
@@ -469,23 +629,45 @@ class _BillDetailModal extends StatelessWidget {
                                 child: Text(item.name),
                               ),
                               Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Text(
-                                  item.bags.toStringAsFixed(0),
-                                  textAlign: TextAlign.center,
-                                ),
+                                padding: const EdgeInsets.all(8.0),
+                                child: _isEditing
+                                    ? TextField(
+                                        controller: _bagsControllers[index],
+                                        keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                        textAlign: TextAlign.center,
+                                        decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.all(8),
+                                        ),
+                                      )
+                                    : Text(
+                                        item.bags.toStringAsFixed(0),
+                                        textAlign: TextAlign.center,
+                                      ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: _isEditing
+                                    ? TextField(
+                                        controller: _unitPriceControllers[index],
+                                        keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                        textAlign: TextAlign.center,
+                                        decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.all(8),
+                                        ),
+                                      )
+                                    : Text(
+                                        item.unitPrice.toStringAsFixed(2),
+                                        textAlign: TextAlign.center,
+                                      ),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(12.0),
                                 child: Text(
-                                  item.unitPrice.toStringAsFixed(2),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Text(
-                                  item.total.toStringAsFixed(2),
+                                  _isEditing 
+                                      ? _itemTotals[index].toStringAsFixed(2)
+                                      : item.total.toStringAsFixed(2),
                                   textAlign: TextAlign.right,
                                 ),
                               ),
@@ -507,7 +689,9 @@ class _BillDetailModal extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.all(12.0),
                               child: Text(
-                                bill.billTotal.toStringAsFixed(2),
+                                _isEditing 
+                                    ? _calculateBillTotal().toStringAsFixed(2)
+                                    : widget.bill.billTotal.toStringAsFixed(2),
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                                 textAlign: TextAlign.right,
                               ),
@@ -522,18 +706,68 @@ class _BillDetailModal extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: onClose,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    side: const BorderSide(color: Colors.black),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text('Close'),
-                ),
-              ),
+              child: _isEditing
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _loading ? null : () {
+                              setState(() {
+                                _isEditing = false;
+                                _errorMessage = null;
+                                // Reset to original values
+                                _stockNumberController.text = widget.bill.stockNumber ?? '';
+                                _dateController.text = widget.bill.date;
+                                for (int i = 0; i < widget.bill.items.length; i++) {
+                                  _bagsControllers[i].text = widget.bill.items[i].bags.toStringAsFixed(0);
+                                  _unitPriceControllers[i].text = widget.bill.items[i].unitPrice.toStringAsFixed(2);
+                                  _itemTotals[i] = widget.bill.items[i].total;
+                                }
+                              });
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.black,
+                              side: const BorderSide(color: Colors.black),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: const Text('Cancel'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _loading ? null : _saveBill,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: _loading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  )
+                                : const Text('Save'),
+                          ),
+                        ),
+                      ],
+                    )
+                  : SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: onClose,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.black,
+                          side: const BorderSide(color: Colors.black),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: const Text('Close'),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -541,7 +775,7 @@ class _BillDetailModal extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, bool editable, {TextEditingController? controller, bool isDate = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
@@ -554,7 +788,36 @@ class _BillDetailModal extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: editable && _isEditing && controller != null
+                ? isDate
+                    ? TextField(
+                        controller: controller,
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.calendar_today),
+                        ),
+                        onTap: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.tryParse(controller.text) ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (date != null) {
+                            controller.text = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+                          }
+                        },
+                      )
+                    : TextField(
+                        controller: controller,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
+                      )
+                : Text(value.isEmpty ? (label == 'Stock Number:' ? (widget.bill.stockNumber ?? 'N/A') : widget.formatDate(widget.bill.date)) : value),
+          ),
         ],
       ),
     );

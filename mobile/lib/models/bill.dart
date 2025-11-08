@@ -37,6 +37,7 @@ class Bill {
   final String date;
   final List<BillItem> items;
   final double billTotal;
+  final String? createdAt;
 
   Bill({
     required this.customerId,
@@ -45,6 +46,7 @@ class Bill {
     required this.date,
     required this.items,
     required this.billTotal,
+    this.createdAt,
   });
 
   factory Bill.fromJson(Map<String, dynamic> json) {
@@ -58,11 +60,12 @@ class Bill {
               .toList() ??
           [],
       billTotal: (json['billTotal'] ?? 0).toDouble(),
+      createdAt: json['createdAt'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = {
       'customerId': customerId,
       'customerName': customerName,
       'stockNumber': stockNumber,
@@ -70,6 +73,10 @@ class Bill {
       'items': items.map((item) => item.toJson()).toList(),
       'billTotal': billTotal,
     };
+    if (createdAt != null) {
+      map['createdAt'] = createdAt;
+    }
+    return map;
   }
 }
 

@@ -59,6 +59,26 @@ class ApiService {
     }
   }
 
+  static Future<Bill> updateBill(Bill bill) async {
+    if (bill.createdAt == null) {
+      throw Exception('Bill createdAt is required for update');
+    }
+    
+    final response = await http.put(
+      Uri.parse('${ApiConfig.baseUrl}/api/bills'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(bill.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return Bill.fromJson(data['bill'] ?? data);
+    } else {
+      final error = json.decode(response.body);
+      throw Exception(error['error'] ?? 'Failed to update bill');
+    }
+  }
+
   static Future<List<Payment>> getPayments() async {
     final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/api/payments'));
     if (response.statusCode == 200) {
