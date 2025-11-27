@@ -44,6 +44,7 @@ function Stocks() {
     
     stocks.forEach((stock) => {
       totals.tokyo += parseFloat(stock.tokyo || 0);
+      // Handle both sanstha (backend) and Samudra (frontend) naming
       totals.samudra += parseFloat(stock.sanstha || stock.Samudra || 0);
       totals.atlas += parseFloat(stock.atlas || 0);
       totals.nipon += parseFloat(stock.nipon || 0);
@@ -51,6 +52,11 @@ function Stocks() {
     });
     
     return totals;
+  };
+
+  // Helper function to get Samudra value from stock (handles naming inconsistency)
+  const getSamudraValue = (stock) => {
+    return parseFloat(stock.sanstha || stock.Samudra || 0);
   };
 
   const fetchStocks = async () => {
@@ -268,36 +274,36 @@ function Stocks() {
               </Card.Body>
             </Card>
           ) : (
-            <Table striped bordered hover>
+            <Table striped bordered hover responsive>
               <thead className="table-dark">
                 <tr>
-                  <th>Stock ID</th>
-                  <th>Tokyo</th>
-                  <th>Samudra</th>
-                  <th>Atlas</th>
-                  <th>Nipon</th>
-                  <th>Total Number</th>
+                  <th style={{ minWidth: '100px' }}>Stock ID</th>
+                  <th style={{ minWidth: '80px' }}>Tokyo</th>
+                  <th style={{ minWidth: '80px' }}>Samudra</th>
+                  <th style={{ minWidth: '80px' }}>Atlas</th>
+                  <th style={{ minWidth: '80px' }}>Nipon</th>
+                  <th style={{ minWidth: '100px' }}>Total Number</th>
                 </tr>
               </thead>
               <tbody>
                 {currentItems.map((stock, index) => (
                   <tr key={index}>
-                    <td>{stock.stockId}</td>
-                    <td>{stock.tokyo || 0}</td>
-                    <td>{stock.sanstha || stock.Samudra || 0}</td>
-                    <td>{stock.atlas || 0}</td>
-                    <td>{stock.nipon || 0}</td>
-                    <td>{stock.totalNumber || 0}</td>
+                    <td><strong>{stock.stockId}</strong></td>
+                    <td>{parseFloat(stock.tokyo || 0).toLocaleString()}</td>
+                    <td>{getSamudraValue(stock).toLocaleString()}</td>
+                    <td>{parseFloat(stock.atlas || 0).toLocaleString()}</td>
+                    <td>{parseFloat(stock.nipon || 0).toLocaleString()}</td>
+                    <td><strong>{parseFloat(stock.totalNumber || 0).toLocaleString()}</strong></td>
                   </tr>
                 ))}
                 {filteredStocks.length > 0 && (
                   <tr style={{ backgroundColor: '#e9ecef', fontWeight: 'bold' }}>
                     <td>Total</td>
-                    <td>{calculateTotals().tokyo}</td>
-                    <td>{calculateTotals().samudra}</td>
-                    <td>{calculateTotals().atlas}</td>
-                    <td>{calculateTotals().nipon}</td>
-                    <td>{calculateTotals().total}</td>
+                    <td>{calculateTotals().tokyo.toLocaleString()}</td>
+                    <td>{calculateTotals().samudra.toLocaleString()}</td>
+                    <td>{calculateTotals().atlas.toLocaleString()}</td>
+                    <td>{calculateTotals().nipon.toLocaleString()}</td>
+                    <td>{calculateTotals().total.toLocaleString()}</td>
                   </tr>
                 )}
               </tbody>

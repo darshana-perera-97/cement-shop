@@ -196,24 +196,38 @@ app.post('/api/bills', (req, res) => {
     const stocks = readStocks();
     const stockIndex = stocks.findIndex(s => s.stockId === stockNumber);
 
-    // Calculate cement counts from items
+    // Calculate cement counts from items - handle both "Sanstha" and "Samudra" naming
     const tokyoCount = items.find(item => item.name === 'Tokyo')?.bags || 0;
-    const sansthaCount = items.find(item => item.name === 'Sanstha')?.bags || 0;
+    const sansthaCount = items.find(item => item.name === 'Sanstha' || item.name === 'Samudra')?.bags || 0;
     const atlasCount = items.find(item => item.name === 'Atlas')?.bags || 0;
     const niponCount = items.find(item => item.name === 'Nipon')?.bags || 0;
     const totalNumber = parseFloat(tokyoCount) + parseFloat(sansthaCount) + parseFloat(atlasCount) + parseFloat(niponCount);
+    
+    console.log(`Cement counts - Tokyo: ${tokyoCount}, Sanstha/Samudra: ${sansthaCount}, Atlas: ${atlasCount}, Nipon: ${niponCount}, Total: ${totalNumber}`);
 
     if (stockIndex !== -1) {
-      // Update existing stock
-      stocks[stockIndex].tokyo = (parseFloat(stocks[stockIndex].tokyo) || 0) + parseFloat(tokyoCount);
-      stocks[stockIndex].sanstha = (parseFloat(stocks[stockIndex].sanstha) || 0) + parseFloat(sansthaCount);
-      stocks[stockIndex].atlas = (parseFloat(stocks[stockIndex].atlas) || 0) + parseFloat(atlasCount);
-      stocks[stockIndex].nipon = (parseFloat(stocks[stockIndex].nipon) || 0) + parseFloat(niponCount);
-      stocks[stockIndex].totalNumber = (parseFloat(stocks[stockIndex].totalNumber) || 0) + parseFloat(totalNumber);
-      console.log(`Updated existing stock ${stockNumber}`);
+      // Update existing stock - all 4 cement types
+      const oldTokyo = parseFloat(stocks[stockIndex].tokyo) || 0;
+      const oldSanstha = parseFloat(stocks[stockIndex].sanstha) || 0;
+      const oldAtlas = parseFloat(stocks[stockIndex].atlas) || 0;
+      const oldNipon = parseFloat(stocks[stockIndex].nipon) || 0;
+      const oldTotal = parseFloat(stocks[stockIndex].totalNumber) || 0;
+      
+      stocks[stockIndex].tokyo = oldTokyo + parseFloat(tokyoCount);
+      stocks[stockIndex].sanstha = oldSanstha + parseFloat(sansthaCount);
+      stocks[stockIndex].atlas = oldAtlas + parseFloat(atlasCount);
+      stocks[stockIndex].nipon = oldNipon + parseFloat(niponCount);
+      stocks[stockIndex].totalNumber = oldTotal + parseFloat(totalNumber);
+      
+      console.log(`Updated existing stock ${stockNumber}:`);
+      console.log(`  Tokyo: ${oldTokyo} + ${tokyoCount} = ${stocks[stockIndex].tokyo}`);
+      console.log(`  Sanstha: ${oldSanstha} + ${sansthaCount} = ${stocks[stockIndex].sanstha}`);
+      console.log(`  Atlas: ${oldAtlas} + ${atlasCount} = ${stocks[stockIndex].atlas}`);
+      console.log(`  Nipon: ${oldNipon} + ${niponCount} = ${stocks[stockIndex].nipon}`);
+      console.log(`  Total: ${oldTotal} + ${totalNumber} = ${stocks[stockIndex].totalNumber}`);
     } else {
-      // Create new stock
-      stocks.push({
+      // Create new stock - all 4 cement types initialized
+      const newStock = {
         stockId: stockNumber,
         tokyo: parseFloat(tokyoCount) || 0,
         sanstha: parseFloat(sansthaCount) || 0,
@@ -221,8 +235,10 @@ app.post('/api/bills', (req, res) => {
         nipon: parseFloat(niponCount) || 0,
         totalNumber: parseFloat(totalNumber) || 0,
         createdAt: new Date().toISOString()
-      });
-      console.log(`Created new stock ${stockNumber}`);
+      };
+      stocks.push(newStock);
+      console.log(`Created new stock ${stockNumber}:`);
+      console.log(`  Tokyo: ${newStock.tokyo}, Sanstha: ${newStock.sanstha}, Atlas: ${newStock.atlas}, Nipon: ${newStock.nipon}, Total: ${newStock.totalNumber}`);
     }
 
     // Save stocks
@@ -326,43 +342,70 @@ app.put('/api/bills', (req, res) => {
     console.log('Updating stocks data...');
     const stocks = readStocks();
     
-    // Reverse old bill stock changes
+    // Reverse old bill stock changes - handle both "Sanstha" and "Samudra" naming
     const oldTokyoCount = oldBill.items.find(item => item.name === 'Tokyo')?.bags || 0;
-    const oldSansthaCount = oldBill.items.find(item => item.name === 'Sanstha')?.bags || 0;
+    const oldSansthaCount = oldBill.items.find(item => item.name === 'Sanstha' || item.name === 'Samudra')?.bags || 0;
     const oldAtlasCount = oldBill.items.find(item => item.name === 'Atlas')?.bags || 0;
     const oldNiponCount = oldBill.items.find(item => item.name === 'Nipon')?.bags || 0;
     
-    // Calculate new bill cement counts
+    // Calculate new bill cement counts - handle both "Sanstha" and "Samudra" naming
     const newTokyoCount = items.find(item => item.name === 'Tokyo')?.bags || 0;
-    const newSansthaCount = items.find(item => item.name === 'Sanstha')?.bags || 0;
+    const newSansthaCount = items.find(item => item.name === 'Sanstha' || item.name === 'Samudra')?.bags || 0;
     const newAtlasCount = items.find(item => item.name === 'Atlas')?.bags || 0;
     const newNiponCount = items.find(item => item.name === 'Nipon')?.bags || 0;
     
-    // Update old stock (reverse)
+    console.log(`Old counts - Tokyo: ${oldTokyoCount}, Sanstha/Samudra: ${oldSansthaCount}, Atlas: ${oldAtlasCount}, Nipon: ${oldNiponCount}`);
+    console.log(`New counts - Tokyo: ${newTokyoCount}, Sanstha/Samudra: ${newSansthaCount}, Atlas: ${newAtlasCount}, Nipon: ${newNiponCount}`);
+    
+    // Update old stock (reverse) - all 4 cement types
     const oldStockIndex = stocks.findIndex(s => s.stockId === oldBill.stockNumber);
     if (oldStockIndex !== -1) {
-      stocks[oldStockIndex].tokyo = (parseFloat(stocks[oldStockIndex].tokyo) || 0) - parseFloat(oldTokyoCount);
-      stocks[oldStockIndex].sanstha = (parseFloat(stocks[oldStockIndex].sanstha) || 0) - parseFloat(oldSansthaCount);
-      stocks[oldStockIndex].atlas = (parseFloat(stocks[oldStockIndex].atlas) || 0) - parseFloat(oldAtlasCount);
-      stocks[oldStockIndex].nipon = (parseFloat(stocks[oldStockIndex].nipon) || 0) - parseFloat(oldNiponCount);
-      stocks[oldStockIndex].totalNumber = (parseFloat(stocks[oldStockIndex].totalNumber) || 0) - 
+      const oldStockTokyo = parseFloat(stocks[oldStockIndex].tokyo) || 0;
+      const oldStockSanstha = parseFloat(stocks[oldStockIndex].sanstha) || 0;
+      const oldStockAtlas = parseFloat(stocks[oldStockIndex].atlas) || 0;
+      const oldStockNipon = parseFloat(stocks[oldStockIndex].nipon) || 0;
+      const oldStockTotal = parseFloat(stocks[oldStockIndex].totalNumber) || 0;
+      
+      stocks[oldStockIndex].tokyo = oldStockTokyo - parseFloat(oldTokyoCount);
+      stocks[oldStockIndex].sanstha = oldStockSanstha - parseFloat(oldSansthaCount);
+      stocks[oldStockIndex].atlas = oldStockAtlas - parseFloat(oldAtlasCount);
+      stocks[oldStockIndex].nipon = oldStockNipon - parseFloat(oldNiponCount);
+      stocks[oldStockIndex].totalNumber = oldStockTotal - 
         (parseFloat(oldTokyoCount) + parseFloat(oldSansthaCount) + parseFloat(oldAtlasCount) + parseFloat(oldNiponCount));
+      
+      console.log(`Reversed old stock ${oldBill.stockNumber}:`);
+      console.log(`  Tokyo: ${oldStockTokyo} - ${oldTokyoCount} = ${stocks[oldStockIndex].tokyo}`);
+      console.log(`  Sanstha: ${oldStockSanstha} - ${oldSansthaCount} = ${stocks[oldStockIndex].sanstha}`);
+      console.log(`  Atlas: ${oldStockAtlas} - ${oldAtlasCount} = ${stocks[oldStockIndex].atlas}`);
+      console.log(`  Nipon: ${oldStockNipon} - ${oldNiponCount} = ${stocks[oldStockIndex].nipon}`);
     }
     
-    // Update new stock (apply)
+    // Update new stock (apply) - all 4 cement types
     const newStockIndex = stocks.findIndex(s => s.stockId === stockNumber);
     const totalNumber = parseFloat(newTokyoCount) + parseFloat(newSansthaCount) + parseFloat(newAtlasCount) + parseFloat(newNiponCount);
     
     if (newStockIndex !== -1) {
-      stocks[newStockIndex].tokyo = (parseFloat(stocks[newStockIndex].tokyo) || 0) + parseFloat(newTokyoCount);
-      stocks[newStockIndex].sanstha = (parseFloat(stocks[newStockIndex].sanstha) || 0) + parseFloat(newSansthaCount);
-      stocks[newStockIndex].atlas = (parseFloat(stocks[newStockIndex].atlas) || 0) + parseFloat(newAtlasCount);
-      stocks[newStockIndex].nipon = (parseFloat(stocks[newStockIndex].nipon) || 0) + parseFloat(newNiponCount);
-      stocks[newStockIndex].totalNumber = (parseFloat(stocks[newStockIndex].totalNumber) || 0) + parseFloat(totalNumber);
-      console.log(`Updated existing stock ${stockNumber}`);
+      const newStockTokyo = parseFloat(stocks[newStockIndex].tokyo) || 0;
+      const newStockSanstha = parseFloat(stocks[newStockIndex].sanstha) || 0;
+      const newStockAtlas = parseFloat(stocks[newStockIndex].atlas) || 0;
+      const newStockNipon = parseFloat(stocks[newStockIndex].nipon) || 0;
+      const newStockTotal = parseFloat(stocks[newStockIndex].totalNumber) || 0;
+      
+      stocks[newStockIndex].tokyo = newStockTokyo + parseFloat(newTokyoCount);
+      stocks[newStockIndex].sanstha = newStockSanstha + parseFloat(newSansthaCount);
+      stocks[newStockIndex].atlas = newStockAtlas + parseFloat(newAtlasCount);
+      stocks[newStockIndex].nipon = newStockNipon + parseFloat(newNiponCount);
+      stocks[newStockIndex].totalNumber = newStockTotal + parseFloat(totalNumber);
+      
+      console.log(`Applied new stock ${stockNumber}:`);
+      console.log(`  Tokyo: ${newStockTokyo} + ${newTokyoCount} = ${stocks[newStockIndex].tokyo}`);
+      console.log(`  Sanstha: ${newStockSanstha} + ${newSansthaCount} = ${stocks[newStockIndex].sanstha}`);
+      console.log(`  Atlas: ${newStockAtlas} + ${newAtlasCount} = ${stocks[newStockIndex].atlas}`);
+      console.log(`  Nipon: ${newStockNipon} + ${newNiponCount} = ${stocks[newStockIndex].nipon}`);
+      console.log(`  Total: ${newStockTotal} + ${totalNumber} = ${stocks[newStockIndex].totalNumber}`);
     } else {
-      // Create new stock if it doesn't exist
-      stocks.push({
+      // Create new stock if it doesn't exist - all 4 cement types initialized
+      const newStock = {
         stockId: stockNumber,
         tokyo: parseFloat(newTokyoCount) || 0,
         sanstha: parseFloat(newSansthaCount) || 0,
@@ -370,8 +413,10 @@ app.put('/api/bills', (req, res) => {
         nipon: parseFloat(newNiponCount) || 0,
         totalNumber: parseFloat(totalNumber) || 0,
         createdAt: new Date().toISOString()
-      });
-      console.log(`Created new stock ${stockNumber}`);
+      };
+      stocks.push(newStock);
+      console.log(`Created new stock ${stockNumber}:`);
+      console.log(`  Tokyo: ${newStock.tokyo}, Sanstha: ${newStock.sanstha}, Atlas: ${newStock.atlas}, Nipon: ${newStock.nipon}, Total: ${newStock.totalNumber}`);
     }
 
     // Save stocks
