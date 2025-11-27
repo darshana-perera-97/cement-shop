@@ -517,6 +517,93 @@ app.get('/api/payments', (req, res) => {
   }
 });
 
+app.put('/api/payments', (req, res) => {
+  try {
+    console.log('PUT /api/payments - Updating payment');
+    const { createdAt, customerId, customerName, amount, date, notes } = req.body;
+
+    // Validation
+    if (!createdAt) {
+      console.log('Validation failed: Missing createdAt identifier');
+      return res.status(400).json({ error: 'Payment identifier (createdAt) is required' });
+    }
+    if (!customerId || !customerName) {
+      console.log('Validation failed: Missing customer information');
+      return res.status(400).json({ error: 'Customer selection is required' });
+    }
+    if (!amount || amount <= 0) {
+      console.log('Validation failed: Invalid amount');
+      return res.status(400).json({ error: 'Valid payment amount is required' });
+    }
+    if (!date) {
+      console.log('Validation failed: Missing date');
+      return res.status(400).json({ error: 'Date is required' });
+    }
+
+    console.log('Validation passed, reading existing payments...');
+    const payments = readPayments();
+    
+    // Find the payment to update by createdAt
+    const paymentIndex = payments.findIndex(p => p.createdAt === createdAt);
+    
+    if (paymentIndex === -1) {
+      console.log('Payment not found with createdAt:', createdAt);
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+
+    // Store old payment data for customer reversal
+    const oldPayment = payments[paymentIndex];
+
+    // Update payment object
+    const updatedPayment = {
+      ...oldPayment,
+      customerId,
+      customerName,
+      amount: parseFloat(amount),
+      date,
+      notes: notes || '',
+    };
+
+    console.log('Updated payment object:', JSON.stringify(updatedPayment, null, 2));
+
+    // Replace the payment in array
+    payments[paymentIndex] = updatedPayment;
+
+    // Save to file
+    writePayments(payments);
+
+    // Update customer data in customers.json - update totalPayments
+    console.log('Updating customer totalPayments...');
+    const customers = readCustomers();
+    
+    // Update old customer if customer changed
+    if (oldPayment.customerId !== customerId) {
+      const oldCustomerIndex = customers.findIndex(c => c.customerId === oldPayment.customerId);
+      if (oldCustomerIndex !== -1) {
+        const oldCustomerPayments = payments.filter(p => p.customerId === oldPayment.customerId);
+        const oldTotalPayments = oldCustomerPayments.reduce((sum, payment) => sum + payment.amount, 0);
+        customers[oldCustomerIndex].totalPayments = oldTotalPayments;
+      }
+    }
+    
+    // Update new customer
+    const customerIndex = customers.findIndex(c => c.customerId === customerId);
+    if (customerIndex !== -1) {
+      const customerPayments = payments.filter(p => p.customerId === customerId);
+      const totalPayments = customerPayments.reduce((sum, payment) => sum + payment.amount, 0);
+      customers[customerIndex].totalPayments = totalPayments;
+      writeCustomers(customers);
+      console.log(`Updated customer ${customerId} with totalPayments: ${totalPayments}`);
+    }
+
+    console.log('Payment updated successfully');
+    res.status(200).json({ message: 'Payment updated successfully', payment: updatedPayment });
+  } catch (error) {
+    console.error('Error updating payment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Helper function to read stocks
 function readStocks() {
   const filePath = path.join(dataDir, 'stocks.json');

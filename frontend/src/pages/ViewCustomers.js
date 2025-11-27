@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Table, Button, Alert, Spinner, Form, Card } from 'react-bootstrap';
+import { Container, Table, Button, Alert, Spinner, Form, Card, Pagination } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import API_BASE_URL from '../config';
 
@@ -9,6 +9,8 @@ function ViewCustomers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,6 +19,7 @@ function ViewCustomers() {
 
   useEffect(() => {
     filterCustomers();
+    setCurrentPage(1); // Reset to first page when search changes
   }, [searchQuery, customers]);
 
   const filterCustomers = () => {
@@ -58,6 +61,60 @@ function ViewCustomers() {
     navigate(`/customer/${customerId}`);
   };
 
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const renderPaginationItems = () => {
+    const items = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (startPage > 1) {
+      items.push(
+        <Pagination.First key="first" onClick={() => handlePageChange(1)} />
+      );
+      items.push(
+        <Pagination.Prev key="prev" onClick={() => handlePageChange(Math.max(1, currentPage - 1))} />
+      );
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      items.push(
+        <Pagination.Item
+          key={i}
+          active={i === currentPage}
+          onClick={() => handlePageChange(i)}
+        >
+          {i}
+        </Pagination.Item>
+      );
+    }
+
+    if (endPage < totalPages) {
+      items.push(
+        <Pagination.Next key="next" onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))} />
+      );
+      items.push(
+        <Pagination.Last key="last" onClick={() => handlePageChange(totalPages)} />
+      );
+    }
+
+    return items;
+  };
+
   if (loading) {
     return (
       <Container className="mt-4 text-center">
@@ -97,11 +154,10 @@ function ViewCustomers() {
           </Card>
 
           {/* Results count */}
-          {searchQuery && (
-            <div className="mb-3" style={{ fontSize: '14px', color: '#6c757d' }}>
-              {filteredCustomers.length} customer{filteredCustomers.length !== 1 ? 's' : ''} found
-            </div>
-          )}
+          <div className="mb-3" style={{ fontSize: '14px', color: '#6c757d' }}>
+            Showing {filteredCustomers.length === 0 ? 0 : indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredCustomers.length)} of {filteredCustomers.length} customer{filteredCustomers.length !== 1 ? 's' : ''}
+            {searchQuery && ' (filtered)'}
+          </div>
 
           {/* Customers Table */}
           {filteredCustomers.length === 0 ? (
@@ -121,7 +177,7 @@ function ViewCustomers() {
                 </tr>
               </thead>
               <tbody>
-                {filteredCustomers.map((customer) => (
+                {currentItems.map((customer) => (
                   <tr key={customer.customerId}>
                     <td className="d-none d-md-table-cell">{customer.customerId}</td>
                     <td>{customer.customerName}</td>
@@ -138,6 +194,15 @@ function ViewCustomers() {
                 ))}
               </tbody>
             </Table>
+          )}
+
+          {/* Pagination */}
+          {filteredCustomers.length > itemsPerPage && (
+            <div className="d-flex justify-content-center mt-4">
+              <Pagination>
+                {renderPaginationItems()}
+              </Pagination>
+            </div>
           )}
         </>
       )}

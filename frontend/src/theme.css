@@ -1,0 +1,79 @@
+/* Theme Colors */
+:root {
+  --theme-primary: #000000;
+  --theme-primary-rgb: 0, 0, 0;
+  --theme-primary-light: #333333;
+  --theme-primary-dark: #000000;
+  
+  /* Bootstrap dark variant overrides */
+  --bs-dark: var(--theme-primary);
+  --bs-dark-rgb: var(--theme-primary-rgb);
+  
+  /* Button variants */
+  --btn-dark-bg: var(--theme-primary);
+  --btn-dark-border: var(--theme-primary);
+  --btn-dark-hover-bg: var(--theme-primary-light);
+  --btn-dark-hover-border: var(--theme-primary-light);
+  
+  /* Outline button */
+  --btn-outline-dark-color: var(--theme-primary);
+  --btn-outline-dark-border: var(--theme-primary);
+  --btn-outline-dark-hover-bg: var(--theme-primary);
+  --btn-outline-dark-hover-border: var(--theme-primary);
+  
+  /* Navbar dark */
+  --navbar-dark-bg: var(--theme-primary);
+  --navbar-dark-color: #ffffff;
+  
+  /* Table dark header */
+  --table-dark-bg: var(--theme-primary);
+  --table-dark-color: #ffffff;
+}
+
+/* Override Bootstrap dark button styles */
+.btn-dark {
+  background-color: var(--btn-dark-bg);
+  border-color: var(--btn-dark-border);
+  color: #ffffff;
+}
+
+.btn-dark:hover,
+.btn-dark:focus,
+.btn-dark:active {
+  background-color: var(--btn-dark-hover-bg);
+  border-color: var(--btn-dark-hover-border);
+  color: #ffffff;
+}
+
+/* Override Bootstrap outline dark button styles */
+.btn-outline-dark {
+  color: var(--btn-outline-dark-color);
+  border-color: var(--btn-outline-dark-border);
+  background-color: transparent;
+}
+
+.btn-outline-dark:hover,
+.btn-outline-dark:focus,
+.btn-outline-dark:active {
+  background-color: var(--btn-outline-dark-hover-bg);
+  border-color: var(--btn-outline-dark-hover-border);
+  color: #ffffff;
+}
+
+/* Override Bootstrap navbar dark */
+.navbar-dark {
+  background-color: var(--navbar-dark-bg) !important;
+  color: var(--navbar-dark-color);
+}
+
+/* Override Bootstrap table dark header */
+.table-dark {
+  background-color: var(--table-dark-bg);
+  color: var(--table-dark-color);
+}
+
+.table-dark th {
+  background-color: var(--table-dark-bg);
+  color: var(--table-dark-color);
+}
+

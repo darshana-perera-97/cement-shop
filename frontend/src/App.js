@@ -12,6 +12,7 @@ import CustomerDetail from './pages/CustomerDetail';
 import AddBill from './pages/AddBill';
 import ViewBills from './pages/ViewBills';
 import AddPayments from './pages/AddPayments';
+import ViewPayments from './pages/ViewPayments';
 import Stocks from './pages/Stocks';
 
 function NavigationBar() {
@@ -110,6 +111,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <AddPayments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/view-payments"
+          element={
+            <ProtectedRoute>
+              <ViewPayments />
             </ProtectedRoute>
           }
         />

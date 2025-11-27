@@ -10,6 +10,7 @@ function Home() {
     { title: 'Add Bills', path: '/add-bill', icon: <BsReceipt size={48} /> },
     { title: 'View Bills', path: '/view-bills', icon: <BsFileEarmarkText size={48} /> },
     { title: 'Add Payments', path: '/add-payments', icon: <BsCreditCard size={48} /> },
+    { title: 'View Payments', path: '/view-payments', icon: <BsCreditCard size={48} /> },
     { title: 'Stocks', path: '/stocks', icon: <BsBoxes size={48} /> },
   ];
 
