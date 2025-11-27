@@ -169,28 +169,90 @@ function Stocks() {
             {searchQuery && ' (filtered)'}
           </div>
 
-          {/* Total Bags Summary */}
+          {/* Cement Stock Summary */}
           {stocks.length > 0 && (
-            <Card className="mb-3" style={{ backgroundColor: '#f8f9fa' }}>
+            <Card className="mb-3" style={{ backgroundColor: '#f8f9fa', border: '2px solid #dee2e6' }}>
               <Card.Body>
-                <h6 className="mb-3">Total Bags Across All Stocks</h6>
-                <div className="row">
-                  <div className="col-md-3 mb-2">
-                    <strong>Tokyo:</strong> {calculateTotals().tokyo}
+                <h5 className="mb-4" style={{ fontWeight: 'bold', color: '#212529' }}>
+                  Cement Stock Summary
+                </h5>
+                <div className="row g-3">
+                  <div className="col-md-3 col-sm-6">
+                    <Card style={{ backgroundColor: '#ffffff', border: '1px solid #dee2e6' }}>
+                      <Card.Body className="text-center">
+                        <div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: '0.5rem' }}>
+                          Tokyo
+                        </div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#212529' }}>
+                          {calculateTotals().tokyo}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#6c757d', marginTop: '0.25rem' }}>
+                          bags
+                        </div>
+                      </Card.Body>
+                    </Card>
                   </div>
-                  <div className="col-md-3 mb-2">
-                    <strong>Samudra:</strong> {calculateTotals().samudra}
+                  <div className="col-md-3 col-sm-6">
+                    <Card style={{ backgroundColor: '#ffffff', border: '1px solid #dee2e6' }}>
+                      <Card.Body className="text-center">
+                        <div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: '0.5rem' }}>
+                          Samudra
+                        </div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#212529' }}>
+                          {calculateTotals().samudra}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#6c757d', marginTop: '0.25rem' }}>
+                          bags
+                        </div>
+                      </Card.Body>
+                    </Card>
                   </div>
-                  <div className="col-md-3 mb-2">
-                    <strong>Atlas:</strong> {calculateTotals().atlas}
+                  <div className="col-md-3 col-sm-6">
+                    <Card style={{ backgroundColor: '#ffffff', border: '1px solid #dee2e6' }}>
+                      <Card.Body className="text-center">
+                        <div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: '0.5rem' }}>
+                          Atlas
+                        </div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#212529' }}>
+                          {calculateTotals().atlas}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#6c757d', marginTop: '0.25rem' }}>
+                          bags
+                        </div>
+                      </Card.Body>
+                    </Card>
                   </div>
-                  <div className="col-md-3 mb-2">
-                    <strong>Nipon:</strong> {calculateTotals().nipon}
+                  <div className="col-md-3 col-sm-6">
+                    <Card style={{ backgroundColor: '#ffffff', border: '1px solid #dee2e6' }}>
+                      <Card.Body className="text-center">
+                        <div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: '0.5rem' }}>
+                          Nipon
+                        </div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#212529' }}>
+                          {calculateTotals().nipon}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#6c757d', marginTop: '0.25rem' }}>
+                          bags
+                        </div>
+                      </Card.Body>
+                    </Card>
                   </div>
                 </div>
-                <div className="row mt-2">
-                  <div className="col-md-12">
-                    <strong>Grand Total:</strong> {calculateTotals().total}
+                <div className="row mt-3">
+                  <div className="col-12">
+                    <Card style={{ backgroundColor: '#ffffff', border: '2px solid #212529' }}>
+                      <Card.Body className="text-center">
+                        <div style={{ fontSize: '1rem', color: '#6c757d', marginBottom: '0.5rem' }}>
+                          Grand Total
+                        </div>
+                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#212529' }}>
+                          {calculateTotals().total}
+                        </div>
+                        <div style={{ fontSize: '0.9rem', color: '#6c757d', marginTop: '0.25rem' }}>
+                          total bags in stock
+                        </div>
+                      </Card.Body>
+                    </Card>
                   </div>
                 </div>
               </Card.Body>
