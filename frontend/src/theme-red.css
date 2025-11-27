@@ -1,9 +1,9 @@
 /* Theme Colors */
 :root {
-  --theme-primary: #000000;
-  --theme-primary-rgb: 0, 0, 0;
-  --theme-primary-light: #333333;
-  --theme-primary-dark: #000000;
+  --theme-primary: #dc3545;
+  --theme-primary-rgb: 220, 53, 69;
+  --theme-primary-light: #e4606d;
+  --theme-primary-dark: #c82333;
   
   /* Bootstrap dark variant overrides */
   --bs-dark: var(--theme-primary);
@@ -28,6 +28,16 @@
   /* Table dark header */
   --table-dark-bg: var(--theme-primary);
   --table-dark-color: #ffffff;
+  
+  /* Pagination */
+  --pagination-active-bg: var(--theme-primary);
+  --pagination-active-border: var(--theme-primary);
+  --pagination-active-color: #ffffff;
+  --pagination-hover-bg: var(--theme-primary-light);
+  --pagination-hover-border: var(--theme-primary-light);
+  --pagination-hover-color: #ffffff;
+  --pagination-color: var(--theme-primary);
+  --pagination-border: var(--theme-primary);
 }
 
 /* Override Bootstrap dark button styles */
@@ -75,5 +85,46 @@
 .table-dark th {
   background-color: var(--table-dark-bg);
   color: var(--table-dark-color);
+}
+
+/* Pagination styling with theme color */
+.page-link {
+  color: var(--pagination-color);
+  border-color: var(--pagination-border);
+  background-color: #ffffff;
+}
+
+.page-link:hover {
+  color: var(--pagination-hover-color);
+  background-color: var(--pagination-hover-bg);
+  border-color: var(--pagination-hover-border);
+}
+
+.page-link:focus {
+  color: var(--pagination-hover-color);
+  background-color: var(--pagination-hover-bg);
+  border-color: var(--pagination-hover-border);
+  box-shadow: 0 0 0 0.25rem rgba(var(--theme-primary-rgb), 0.25);
+}
+
+.page-item.active .page-link {
+  background-color: var(--pagination-active-bg);
+  border-color: var(--pagination-active-border);
+  color: var(--pagination-active-color);
+}
+
+.page-item.active .page-link:hover,
+.page-item.active .page-link:focus {
+  background-color: var(--pagination-active-bg);
+  border-color: var(--pagination-active-border);
+  color: var(--pagination-active-color);
+}
+
+.page-item.disabled .page-link {
+  color: #6c757d;
+  background-color: #ffffff;
+  border-color: #dee2e6;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 

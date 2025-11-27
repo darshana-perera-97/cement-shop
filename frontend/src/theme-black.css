@@ -1,0 +1,130 @@
+/* Theme Colors */
+:root {
+  --theme-primary: #000000;
+  --theme-primary-rgb: 0, 0, 0;
+  --theme-primary-light: #333333;
+  --theme-primary-dark: #000000;
+  
+  /* Bootstrap dark variant overrides */
+  --bs-dark: var(--theme-primary);
+  --bs-dark-rgb: var(--theme-primary-rgb);
+  
+  /* Button variants */
+  --btn-dark-bg: var(--theme-primary);
+  --btn-dark-border: var(--theme-primary);
+  --btn-dark-hover-bg: var(--theme-primary-light);
+  --btn-dark-hover-border: var(--theme-primary-light);
+  
+  /* Outline button */
+  --btn-outline-dark-color: var(--theme-primary);
+  --btn-outline-dark-border: var(--theme-primary);
+  --btn-outline-dark-hover-bg: var(--theme-primary);
+  --btn-outline-dark-hover-border: var(--theme-primary);
+  
+  /* Navbar dark */
+  --navbar-dark-bg: var(--theme-primary);
+  --navbar-dark-color: #ffffff;
+  
+  /* Table dark header */
+  --table-dark-bg: var(--theme-primary);
+  --table-dark-color: #ffffff;
+  
+  /* Pagination */
+  --pagination-active-bg: var(--theme-primary);
+  --pagination-active-border: var(--theme-primary);
+  --pagination-active-color: #ffffff;
+  --pagination-hover-bg: var(--theme-primary-light);
+  --pagination-hover-border: var(--theme-primary-light);
+  --pagination-hover-color: #ffffff;
+  --pagination-color: var(--theme-primary);
+  --pagination-border: var(--theme-primary);
+}
+
+/* Override Bootstrap dark button styles */
+.btn-dark {
+  background-color: var(--btn-dark-bg);
+  border-color: var(--btn-dark-border);
+  color: #ffffff;
+}
+
+.btn-dark:hover,
+.btn-dark:focus,
+.btn-dark:active {
+  background-color: var(--btn-dark-hover-bg);
+  border-color: var(--btn-dark-hover-border);
+  color: #ffffff;
+}
+
+/* Override Bootstrap outline dark button styles */
+.btn-outline-dark {
+  color: var(--btn-outline-dark-color);
+  border-color: var(--btn-outline-dark-border);
+  background-color: transparent;
+}
+
+.btn-outline-dark:hover,
+.btn-outline-dark:focus,
+.btn-outline-dark:active {
+  background-color: var(--btn-outline-dark-hover-bg);
+  border-color: var(--btn-outline-dark-hover-border);
+  color: #ffffff;
+}
+
+/* Override Bootstrap navbar dark */
+.navbar-dark {
+  background-color: var(--navbar-dark-bg) !important;
+  color: var(--navbar-dark-color);
+}
+
+/* Override Bootstrap table dark header */
+.table-dark {
+  background-color: var(--table-dark-bg);
+  color: var(--table-dark-color);
+}
+
+.table-dark th {
+  background-color: var(--table-dark-bg);
+  color: var(--table-dark-color);
+}
+
+/* Pagination styling with theme color */
+.page-link {
+  color: var(--pagination-color);
+  border-color: var(--pagination-border);
+  background-color: #ffffff;
+}
+
+.page-link:hover {
+  color: var(--pagination-hover-color);
+  background-color: var(--pagination-hover-bg);
+  border-color: var(--pagination-hover-border);
+}
+
+.page-link:focus {
+  color: var(--pagination-hover-color);
+  background-color: var(--pagination-hover-bg);
+  border-color: var(--pagination-hover-border);
+  box-shadow: 0 0 0 0.25rem rgba(var(--theme-primary-rgb), 0.25);
+}
+
+.page-item.active .page-link {
+  background-color: var(--pagination-active-bg);
+  border-color: var(--pagination-active-border);
+  color: var(--pagination-active-color);
+}
+
+.page-item.active .page-link:hover,
+.page-item.active .page-link:focus {
+  background-color: var(--pagination-active-bg);
+  border-color: var(--pagination-active-border);
+  color: var(--pagination-active-color);
+}
+
+.page-item.disabled .page-link {
+  color: #6c757d;
+  background-color: #ffffff;
+  border-color: #dee2e6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
